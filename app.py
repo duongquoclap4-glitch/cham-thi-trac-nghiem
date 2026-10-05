@@ -852,6 +852,9 @@ def reset_made_widgets(made: str):
     for k in list(st.session_state.keys()):
         if isinstance(k, str) and k.startswith(prefixes):
             del st.session_state[k]
+    ver = dict(st.session_state.get("form_ver", {}))
+    ver[made] = ver.get(made, 0) + 1
+    st.session_state["form_ver"] = ver
 
 
 # Phân tách dữ liệu đáp án riêng biệt cho từng tài khoản người dùng
@@ -1021,6 +1024,8 @@ with tabs[1]:
         curr_p2 = data_de.get("phan2", {})
         curr_p3 = data_de.get("phan3", {})
         curr_mon = data_de.get("mon", "Toán (12 P.I + 4 P.II + 6 P.III)")
+        # Phiên bản form: tăng lên mỗi lần đổi định dạng môn để trình duyệt vẽ lại ô nhập mới
+        kv = f"{chon_made}_v{st.session_state.get('form_ver', {}).get(chon_made, 0)}"
         curr_diem_p1 = float(data_de.get("diem_moi_cau_p1", 0.25))
         curr_diem_p3 = float(data_de.get("diem_moi_cau_p3", 0.50))
 
@@ -1127,7 +1132,7 @@ with tabs[1]:
                         max_value=40,
                         value=len(curr_p1) if len(curr_p1) > 0 else (40 if "Ngoại ngữ" in curr_mon else 12),
                         step=1,
-                        key=f"num_p1_{chon_made}"
+                        key=f"num_p1_{kv}"
                     )
                 with c_p1_diem:
                     diem_val_p1 = st.number_input(
@@ -1137,14 +1142,14 @@ with tabs[1]:
                         value=max(0.0, float(curr_diem_p1)),
                         step=0.05,
                         format="%.2f",
-                        key=f"diem_p1_{chon_made}"
+                        key=f"diem_p1_{kv}"
                     )
                 with c_p1_quick:
                     def_str = "".join([curr_p1.get(str(i), "A") for i in range(1, so_cau_p1 + 1)])
                     quick_str = st.text_input(
                         "⚡ Nhập nhanh chuỗi đáp án (gõ liền, ví dụ: ABCDABCDABCD):",
                         value=def_str,
-                        key=f"quick_str_{chon_made}"
+                        key=f"quick_str_{kv}"
                     )
 
             if so_cau_p1 > 0:
@@ -1162,7 +1167,7 @@ with tabs[1]:
                                 f"Đáp án Câu {i}:",
                                 options=["A", "B", "C", "D"],
                                 index=idx_opt,
-                                key=f"p1_sel_{chon_made}_{i}",
+                                key=f"p1_sel_{kv}_{i}",
                                 label_visibility="collapsed"
                             )
                             curr_p1[str(i)] = sel_opt
@@ -1179,7 +1184,7 @@ with tabs[1]:
                 max_value=8,
                 value=len(curr_p2),
                 step=1,
-                key=f"num_p2_{chon_made}"
+                key=f"num_p2_{kv}"
             )
 
             if so_cau_p2 > 0:
@@ -1197,7 +1202,7 @@ with tabs[1]:
                                     f"Ý {s}):",
                                     options=["Đúng (Đ)", "Sai (S)"],
                                     index=0 if cur_s in ("Đ", "D") else 1,
-                                    key=f"p2_r_{chon_made}_{q_i}_{s}",
+                                    key=f"p2_r_{kv}_{q_i}_{s}",
                                     horizontal=True
                                 )
                                 updated_sub[s] = "Đ" if "Đúng" in c_choice else "S"
@@ -1217,7 +1222,7 @@ with tabs[1]:
                     max_value=6,
                     value=len(curr_p3),
                     step=1,
-                    key=f"num_p3_{chon_made}"
+                    key=f"num_p3_{kv}"
                 )
             with c_p3_diem:
                 diem_val_p3 = st.number_input(
@@ -1227,7 +1232,7 @@ with tabs[1]:
                     value=max(0.0, float(curr_diem_p3)),
                     step=0.05,
                     format="%.2f",
-                    key=f"diem_p3_{chon_made}"
+                    key=f"diem_p3_{kv}"
                 )
 
             if so_cau_p3 > 0:
@@ -1242,7 +1247,7 @@ with tabs[1]:
                             in_v = st.text_input(
                                 f"Câu {q_i}:",
                                 value=str(cur_v),
-                                key=f"p3_txt_{chon_made}_{q_i}",
+                                key=f"p3_txt_{kv}_{q_i}",
                                 placeholder="VD: 12 hoặc -3.5"
                             )
                             curr_p3[str(q_i)] = str(in_v).strip()
