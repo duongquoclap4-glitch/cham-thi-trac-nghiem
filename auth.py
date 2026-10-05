@@ -193,40 +193,32 @@ def require_auth():
             """, height=0, width=0)
             return True
 
-    # 2. Nếu không có token trên URL: Chạy script đọc LocalStorage của máy
-    components.html("""
-    <script>
-    (function() {
-        try {
-            var token = null;
-            try {
-                if (window.parent && window.parent.localStorage) {
-                    token = window.parent.localStorage.getItem('omr_device_token');
-                }
-            } catch(e) {}
+    # 2. Giao diện Form Đăng Nhập / Đăng Ký Liquid Glass (Khóa nền sáng chống Dark Mode)
+    st.markdown("""
+    <style>
+    .stApp, [data-testid="stAppViewContainer"], .main {
+        background: #f8fafc !important;
+        background-color: #f8fafc !important;
+    }
+    label, [data-testid="stWidgetLabel"] *, p, span, div {
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+    div[data-baseweb="input"],
+    div[data-baseweb="input"] input,
+    .stTextInput input {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+    }
+    button[kind="primary"], button[kind="primary"] * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-            if (!token) {
-                try {
-                    token = localStorage.getItem('omr_device_token');
-                } catch(e) {}
-            }
-
-            if (token) {
-                var search = window.parent.location.search || window.location.search || "";
-                if (!search.includes("token=")) {
-                    var u = new URL(window.parent.location.href);
-                    u.searchParams.set("token", token);
-                    window.parent.location.replace(u.toString());
-                }
-            }
-        } catch(err) {
-            console.log("Device auto-login checking:", err);
-        }
-    })();
-    </script>
-    """, height=0, width=0)
-
-    # 3. Giao diện Form Đăng Nhập / Đăng Ký Liquid Glass
     col_left, col_mid, col_right = st.columns([1, 1.45, 1])
     with col_mid:
         with st.container(border=True):
@@ -239,6 +231,74 @@ def require_auth():
                 <div style="font-size: 13.5px; color: #64748b; margin-top: 4px;">Đăng nhập hoặc đăng ký tài khoản để sử dụng phần mềm</div>
             </div>
             """, unsafe_allow_html=True)
+
+            # Nút Đăng nhập nhanh 1-Chạm nếu thiết bị đã từng ghi nhớ
+            components.html("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; background: transparent; }
+                    .card {
+                        text-align: center;
+                        padding: 10px;
+                        background: #f0f9ff;
+                        border: 1.5px solid #0284c7;
+                        border-radius: 12px;
+                        box-sizing: border-box;
+                    }
+                    .btn {
+                        display: block;
+                        background: #0284c7;
+                        color: #ffffff !important;
+                        text-decoration: none;
+                        font-weight: 700;
+                        font-size: 13.5px;
+                        padding: 9px 12px;
+                        border-radius: 8px;
+                        margin-top: 5px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div id="quick-card" style="display: none;" class="card">
+                    <div style="font-size: 12px; font-weight: 700; color: #0284c7;">⚡ Thiết bị này đã được ghi nhớ:</div>
+                    <a id="quick-btn" href="#" target="_top" class="btn">🚀 BẤM ĐỂ VÀO THẲNG (1 CHẠM)</a>
+                </div>
+                <script>
+                try {
+                    var token = null;
+                    try {
+                        if (window.parent && window.parent.localStorage) {
+                            token = window.parent.localStorage.getItem('omr_device_token');
+                        }
+                    } catch(e) {}
+                    if (!token) {
+                        try {
+                            token = localStorage.getItem('omr_device_token');
+                        } catch(e) {}
+                    }
+                    if (token) {
+                        var card = document.getElementById('quick-card');
+                        var btn = document.getElementById('quick-btn');
+                        var base = "";
+                        try {
+                            if (window.parent && window.parent.location) {
+                                base = window.parent.location.href.split('?')[0];
+                            }
+                        } catch(e) {}
+                        if (!base) {
+                            base = window.location.href.split('?')[0];
+                        }
+                        btn.href = base + '?token=' + encodeURIComponent(token);
+                        card.style.display = 'block';
+                    }
+                } catch(err) {}
+                </script>
+            </body>
+            </html>
+            """, height=76)
 
             auth_tabs = st.tabs(["🔐 Đăng Nhập", "📝 Đăng Ký Tài Khoản"])
 

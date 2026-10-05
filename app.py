@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 import omr_bggdt
 importlib.reload(omr_bggdt)
@@ -621,6 +622,130 @@ st.markdown("""
         margin-right: 5px;
         box-shadow: 0 2px 6px rgba(14, 165, 233, 0.2);
     }
+
+    /* ========================================================
+       CHỐNG BỊ ẢNH HƯỞNG BỞI NỀN TỐI (DARK MODE OVERRIDE)
+       Bảo vệ 100% giao diện: Chữ luôn sắc nét, không bị ẩn chữ
+       ======================================================== */
+    /* 1. Mọi nhãn widget, tiêu đề và văn bản luôn có màu đậm rõ nét */
+    label,
+    .stWidgetLabel,
+    .stWidgetLabel *,
+    [data-testid="stWidgetLabel"],
+    [data-testid="stWidgetLabel"] *,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] span,
+    div[data-testid="stMarkdownContainer"] h1,
+    div[data-testid="stMarkdownContainer"] h2,
+    div[data-testid="stMarkdownContainer"] h3,
+    div[data-testid="stMarkdownContainer"] h4,
+    div[data-testid="stMarkdownContainer"] h5,
+    div[data-testid="stMarkdownContainer"] strong,
+    div[data-testid="stMarkdownContainer"] em,
+    .stSelectbox label,
+    .stSelectbox label *,
+    .stTextInput label,
+    .stTextInput label *,
+    .stNumberInput label,
+    .stNumberInput label *,
+    .stRadio label,
+    .stRadio label *,
+    .stCheckbox label,
+    .stCheckbox label *,
+    .stFileUploader label,
+    .stFileUploader label * {
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+
+    /* 2. Toàn bộ các ô nhập dữ liệu (Text Input, Number Input) luôn nền trắng, viền xám sáng */
+    div[data-baseweb="input"],
+    div[data-baseweb="input"] input,
+    div[data-baseweb="base-input"],
+    div[data-baseweb="base-input"] input,
+    .stTextInput input,
+    .stNumberInput input,
+    div[data-testid="stTextInput"] input,
+    div[data-testid="stNumberInput"] input {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+    }
+
+    /* 3. Nút tăng giảm số của Number Input (+ / -) */
+    div[data-testid="stNumberInput"] button {
+        background-color: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+    }
+    div[data-testid="stNumberInput"] button svg {
+        fill: #0f172a !important;
+    }
+
+    /* 4. Toàn bộ các hộp chọn Selectbox (Chọn A, B, C, D, ...) luôn nền trắng, chữ đen */
+    div[data-baseweb="select"],
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="select"] [role="combobox"],
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] div {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+    }
+    div[data-baseweb="select"] svg {
+        fill: #0f172a !important;
+    }
+
+    /* 5. Menu xổ xuống của Selectbox (Dropdown Popover) */
+    ul[data-baseweb="menu"],
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] ul,
+    li[data-baseweb="menu-item"] {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+    li[data-baseweb="menu-item"]:hover {
+        background-color: #f0f9ff !important;
+        color: #0284c7 !important;
+        -webkit-text-fill-color: #0284c7 !important;
+    }
+
+    /* 6. Hộp tải file (File Uploader) luôn sáng sủa */
+    div[data-testid="stFileUploader"] section {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+    }
+    div[data-testid="stFileUploader"] section * {
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+
+    /* 7. Khung Radio (chọn mã đề) */
+    div[data-testid="stRadio"] [role="radiogroup"] label * {
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+
+    /* 8. Bảng điểm Dataframe / Table */
+    div[data-testid="stDataFrame"],
+    div[data-testid="stTable"] {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+    }
+
+    /* Ngoại lệ cho Hero Banner và nút Primary (có màu nền xanh/tối) */
+    .hero-banner, .hero-banner *,
+    button[kind="primary"], button[kind="primary"] *,
+    .badge-primary, .code-badge {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    .hero-subtitle {
+        color: #e0f2fe !important;
+        -webkit-text-fill-color: #e0f2fe !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -628,6 +753,22 @@ st.markdown("""
 # CỔNG BẢO MẬT & ĐĂNG NHẬP
 # ==========================================
 require_auth()
+
+# Tự động lưu token định danh vào bộ nhớ LocalStorage của thiết bị
+_curr_tok = st.query_params.get("token")
+if _curr_tok:
+    components.html(f"""
+    <script>
+    try {{
+        if (window.parent && window.parent.localStorage) {{
+            window.parent.localStorage.setItem('omr_device_token', '{_curr_tok}');
+        }}
+    }} catch(e) {{}}
+    try {{
+        localStorage.setItem('omr_device_token', '{_curr_tok}');
+    }} catch(e) {{}}
+    </script>
+    """, height=0, width=0)
 
 # ==========================================
 # HERO BANNER & THÔNG TIN TÀI KHOẢN
@@ -779,12 +920,12 @@ with tabs[1]:
 
     # SECTION 1: QUẢN LÝ & CHUYỂN ĐỔI MÃ ĐỀ
     with st.container(border=True):
-        st.markdown(f"""
+        st.markdown("""
         <div class="glass-header">
             <div class="glass-header-icon">🏷️</div>
             <div>
-                <div style="font-size: 19px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">1. Quản Lý & Chuyển Đổi Mã Đề <span style="font-size: 13px; font-weight: 600; color: #0284c7; background: rgba(2,132,199,0.1); padding: 3px 10px; border-radius: 12px; margin-left: 8px;">🔒 Kho riêng của {fullname}</span></div>
-                <div style="font-size: 13px; color: #64748b; font-weight: 500;">Mã đề và đáp án tại đây hoàn toàn độc lập, chỉ mình bạn nhìn thấy và sử dụng để chấm bài</div>
+                <div style="font-size: 19px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">1. Quản Lý & Chuyển Đổi Mã Đề</div>
+                <div style="font-size: 13px; color: #64748b; font-weight: 500;">Bấm vào nút mã đề để chuyển đổi hoặc nhập mã đề mới tự do (VD: 332, 445)</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
