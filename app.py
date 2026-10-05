@@ -1111,9 +1111,9 @@ with tabs[1]:
                 with c_p1_diem:
                     diem_val_p1 = st.number_input(
                         "Điểm mỗi câu P.I:",
-                        min_value=0.05,
-                        max_value=2.0,
-                        value=curr_diem_p1,
+                        min_value=0.0,
+                        max_value=10.0,
+                        value=max(0.0, float(curr_diem_p1)),
                         step=0.05,
                         format="%.2f",
                         key=f"diem_p1_{chon_made}"
@@ -1201,9 +1201,9 @@ with tabs[1]:
             with c_p3_diem:
                 diem_val_p3 = st.number_input(
                     "Điểm mỗi câu P.III:",
-                    min_value=0.05,
-                    max_value=2.0,
-                    value=curr_diem_p3,
+                    min_value=0.0,
+                    max_value=10.0,
+                    value=max(0.0, float(curr_diem_p3)),
                     step=0.05,
                     format="%.2f",
                     key=f"diem_p3_{chon_made}"
