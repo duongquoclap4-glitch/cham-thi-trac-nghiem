@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "password_hash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "fullname": "Quản Trị Viên",
+    "role": "admin"
+  },
+  "quoclap": {
+    "password_hash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "fullname": "Thầy Quốc Lập",
+    "role": "teacher"
+  },
+  "giaovien": {
+    "password_hash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "fullname": "Giáo Viên Bộ Môn",
+    "role": "teacher"
+  },
+  "quoclap1": {
+    "password_hash": "edee29f882543b956620b26d0ee0e7e950399b1c4222f5de05e06425b4c995e9",
+    "fullname": "hồ",
+    "role": "teacher"
+  }
+}

@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+cloudflared.exe
+*.log
+anh_bai/
+anh_bai_bggdt/
+da_cham/
+da_cham_bggdt/
+test_bggdt_out/
+test_out/
