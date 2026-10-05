@@ -461,20 +461,60 @@ def cham_bai_bggdt(
     diem_p3 = round(p3_dung * cau_hinh_diem.get("diem_moi_cau_p3", 0.50), 2)
     tong_diem = round(diem_p1 + diem_p2 + diem_p3, 2)
 
-    if "?" in kq["sbd"]:
+    # 4. Phát hiện bất thường & Cảnh báo nghi vấn (Anomaly & Defect Detection)
+    to_dup_p1 = [q for q in da_p1.keys() if len(str(kq["phan1"].get(int(q), "-"))) > 1 and kq["phan1"].get(int(q), "-") != "-"]
+    bo_trong_p1 = [q for q in da_p1.keys() if kq["phan1"].get(int(q), "-") in ("-", "")]
+
+    to_dup_p2 = [f"C{q}{s}" for q in da_p2.keys() for s in da_p2[q].keys() if kq["phan2"].get(int(q), {}).get(s) == "DS"]
+    bo_trong_p2 = [f"C{q}{s}" for q in da_p2.keys() for s in da_p2[q].keys() if kq["phan2"].get(int(q), {}).get(s) in ("-", "")]
+
+    bo_trong_p3 = [f"C{q}" for q in da_p3.keys() if kq["phan3"].get(int(q), "-") in ("-", "")]
+
+    ds_canh_bao = []
+    if "?" in kq["sbd"] or len(kq["sbd"]) != 6 or not kq["sbd"].isdigit():
+        ds_canh_bao.append(f"SBD không rõ ({kq['sbd']})")
         ghi_chu.append("SBD tô thiếu hoặc không rõ")
-    if "?" in kq["made"]:
+
+    if "?" in kq["made"] or len(kq["made"]) != 3 or not kq["made"].isdigit():
+        ds_canh_bao.append(f"Mã đề không rõ ({kq['made']})")
         ghi_chu.append("Mã đề tô thiếu hoặc không rõ")
+
+    if to_dup_p1 or to_dup_p2:
+        chi_tiet_dup = []
+        if to_dup_p1:
+            chi_tiet_dup.append("P.I C" + ", C".join(to_dup_p1))
+        if to_dup_p2:
+            chi_tiet_dup.append("P.II " + ", ".join(to_dup_p2))
+        ds_canh_bao.append(f"Tô đúp: {'; '.join(chi_tiet_dup)}")
+        ghi_chu.append(f"Tô đúp: {'; '.join(chi_tiet_dup)}")
+
+    tong_bo_trong = len(bo_trong_p1) + len(bo_trong_p2) + len(bo_trong_p3)
+    if tong_bo_trong > 0:
+        ds_canh_bao.append(f"Bỏ trống {tong_bo_trong} câu/ý")
+        ghi_chu.append(f"Bỏ trống {tong_bo_trong} câu/ý")
+
+    canh_bao_str = "⚠️ " + "; ".join(ds_canh_bao) if ds_canh_bao else "✅ Hợp lệ"
+    co_canh_bao = len(ds_canh_bao) > 0
 
     # Vẽ bảng điểm tổng kết góc trên phiếu chấm
     box_x, box_y = 65, 140
-    cv2.rectangle(anh_out, (box_x, box_y), (box_x + 360, box_y + 115), (255, 255, 255), -1)
-    cv2.rectangle(anh_out, (box_x, box_y), (box_x + 360, box_y + 115), (0, 0, 200), 2)
+    box_h = 115
+    if p2_tong_cau == 0 and p3_tong == 0:
+        box_h = 75
+    elif p3_tong == 0:
+        box_h = 95
+    cv2.rectangle(anh_out, (box_x, box_y), (box_x + 360, box_y + box_h), (255, 255, 255), -1)
+    border_color = (0, 140, 255) if co_canh_bao else (0, 0, 200)
+    cv2.rectangle(anh_out, (box_x, box_y), (box_x + 360, box_y + box_h), border_color, 2)
     cv2.putText(anh_out, f"SBD: {kq['sbd']} | MA DE: {kq['made']}", (box_x + 10, box_y + 25), FONT, 0.65, (0, 0, 0), 2)
     cv2.putText(anh_out, f"Phan I:   {diem_p1:.2f} d ({p1_dung}/{p1_tong})", (box_x + 10, box_y + 50), FONT, 0.55, (0, 0, 0), 1)
-    cv2.putText(anh_out, f"Phan II:  {diem_p2:.2f} d ({p2_tong_cau} cau)", (box_x + 10, box_y + 70), FONT, 0.55, (0, 0, 0), 1)
-    cv2.putText(anh_out, f"Phan III: {diem_p3:.2f} d ({p3_dung}/{p3_tong})", (box_x + 10, box_y + 90), FONT, 0.55, (0, 0, 0), 1)
-    cv2.putText(anh_out, f"TONG: {tong_diem:.2f}", (box_x + 220, box_y + 80), FONT, 0.95, (0, 0, 220), 3)
+    cur_y = box_y + 70
+    if p2_tong_cau > 0:
+        cv2.putText(anh_out, f"Phan II:  {diem_p2:.2f} d ({p2_tong_cau} cau)", (box_x + 10, cur_y), FONT, 0.55, (0, 0, 0), 1)
+        cur_y += 20
+    if p3_tong > 0:
+        cv2.putText(anh_out, f"Phan III: {diem_p3:.2f} d ({p3_dung}/{p3_tong})", (box_x + 10, cur_y), FONT, 0.55, (0, 0, 0), 1)
+    cv2.putText(anh_out, f"TONG: {tong_diem:.2f}", (box_x + 220, box_y + (60 if box_h < 95 else 80)), FONT, 0.95, (0, 0, 220), 3)
 
     return {
         "sbd": kq["sbd"],
@@ -491,49 +531,95 @@ def cham_bai_bggdt(
         "p1_chi_tiet": p1_chi_tiet,
         "p3_chi_tiet": p3_chi_tiet,
         "ghi_chu": "; ".join(ghi_chu),
+        "canh_bao": canh_bao_str,
+        "co_canh_bao": co_canh_bao,
+        "ds_canh_bao": ds_canh_bao,
+        "to_dup": to_dup_p1 + to_dup_p2,
+        "bo_trong_tong": tong_bo_trong,
         "anh_cham": anh_out
     }
 
 
-def xu_ly_file_bggdt(ten_file: str, img: np.ndarray, bo_dap_an: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[np.ndarray]]:
+def xu_ly_file_bggdt(
+    ten_file: str,
+    img: np.ndarray,
+    bo_dap_an: Dict[str, Any],
+    cau_hinh_diem: Optional[Dict[str, Any]] = None,
+    danh_sach_hoc_sinh: Optional[Dict[str, Dict[str, str]]] = None
+) -> Tuple[Dict[str, Any], Optional[np.ndarray]]:
     """Xử lý chấm một bài thi.
 
     bo_dap_an: dict dạng {"101": {"phan1": ..., "phan2": ..., "phan3": ...}, ...}
+    cau_hinh_diem: cấu hình điểm cho các phần (Toán, Tiếng Anh, Sử/Địa, KHTN, Tùy biến)
+    danh_sach_hoc_sinh: danh sách tra cứu SBD -> {"ten": ..., "lop": ...}
     """
     try:
         kq = doc_phieu_bggdt(img)
         made = kq["made"]
+        sbd_raw = str(kq["sbd"]).strip()
+
+        ten_hs = "Chưa rõ"
+        lop_hs = "—"
+        if danh_sach_hoc_sinh:
+            hs_info = danh_sach_hoc_sinh.get(sbd_raw)
+            if not hs_info:
+                hs_info = danh_sach_hoc_sinh.get(sbd_raw.lstrip("0"))
+            if not hs_info and sbd_raw.isdigit():
+                hs_info = danh_sach_hoc_sinh.get(sbd_raw.zfill(6))
+            if hs_info:
+                ten_hs = hs_info.get("ten", "Chưa rõ")
+                lop_hs = hs_info.get("lop", "—")
+
         if made not in bo_dap_an:
             if len(bo_dap_an) == 1:
                 key_de = next(iter(bo_dap_an.keys()))
                 dap_an_de = bo_dap_an[key_de]
-                ch = cham_bai_bggdt(kq, dap_an_de)
+                curr_cfg = cau_hinh_diem or {
+                    "diem_moi_cau_p1": dap_an_de.get("diem_moi_cau_p1", 0.25),
+                    "diem_moi_cau_p3": dap_an_de.get("diem_moi_cau_p3", 0.50),
+                }
+                ch = cham_bai_bggdt(kq, dap_an_de, curr_cfg)
                 ch["ghi_chu"] = (ch["ghi_chu"] + f"; Dùng đáp án mã đề {key_de}").strip("; ")
+                ch["canh_bao"] = (f"⚠️ Mã đề {made} chưa có đáp án (chấm theo {key_de}); " + ch.get("canh_bao", "").replace("✅ Hợp lệ", "")).strip("; ")
+                ch["co_canh_bao"] = True
             else:
                 return {
                     "Tên file": ten_file,
                     "SBD": kq["sbd"],
+                    "Họ và tên": ten_hs,
+                    "Lớp": lop_hs,
                     "Mã đề": made,
                     "Điểm Phần I": None,
                     "Điểm Phần II": None,
                     "Điểm Phần III": None,
                     "Tổng điểm": None,
-                    "Ghi chú": f"LỖI: Không tìm thấy đáp án cho mã đề '{made}'"
+                    "P1 Đúng": "—",
+                    "P3 Đúng": "—",
+                    "Cảnh báo": f"⚠️ Chưa có đáp án cho mã đề '{made}'",
+                    "Ghi chú": f"LỖI: Không tìm thấy đáp án cho mã đề '{made}'",
+                    "_details": None
                 }, None
         else:
             dap_an_de = bo_dap_an[made]
-            ch = cham_bai_bggdt(kq, dap_an_de)
+            curr_cfg = cau_hinh_diem or {
+                "diem_moi_cau_p1": dap_an_de.get("diem_moi_cau_p1", 0.25),
+                "diem_moi_cau_p3": dap_an_de.get("diem_moi_cau_p3", 0.50),
+            }
+            ch = cham_bai_bggdt(kq, dap_an_de, curr_cfg)
 
         row = {
             "Tên file": ten_file,
             "SBD": ch["sbd"],
+            "Họ và tên": ten_hs,
+            "Lớp": lop_hs,
             "Mã đề": ch["made"],
+            "Tổng điểm": ch["tong_diem"],
             "Điểm Phần I": ch["diem_p1"],
             "Điểm Phần II": ch["diem_p2"],
             "Điểm Phần III": ch["diem_p3"],
-            "Tổng điểm": ch["tong_diem"],
             "P1 Đúng": f"{ch['p1_dung']}/{ch['p1_tong']}",
             "P3 Đúng": f"{ch['p3_dung']}/{ch['p3_tong']}",
+            "Cảnh báo": ch["canh_bao"],
             "Ghi chú": ch["ghi_chu"],
             "_details": ch
         }
@@ -542,11 +628,16 @@ def xu_ly_file_bggdt(ten_file: str, img: np.ndarray, bo_dap_an: Dict[str, Any]) 
         return {
             "Tên file": ten_file,
             "SBD": "",
+            "Họ và tên": "Chưa rõ",
+            "Lớp": "—",
             "Mã đề": "",
             "Điểm Phần I": None,
             "Điểm Phần II": None,
             "Điểm Phần III": None,
             "Tổng điểm": None,
+            "P1 Đúng": "—",
+            "P3 Đúng": "—",
+            "Cảnh báo": f"⚠️ LỖI: {str(e)}",
             "Ghi chú": f"LỖI: {str(e)}",
             "_details": None
         }, None

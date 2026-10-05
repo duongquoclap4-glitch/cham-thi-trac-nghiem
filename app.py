@@ -984,16 +984,17 @@ with tabs[1]:
                         st.rerun()
 
     # SECTION 2: SOẠN ĐÁP ÁN CHI TIẾT
+    # SECTION 2: CẤU HÌNH MÔN THI & SOẠN ĐÁP ÁN CHI TIẾT
     with st.container(border=True):
         st.markdown(f"""
         <div class="glass-header">
             <div class="glass-header-icon">✍️</div>
             <div>
                 <div style="font-size: 19px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">
-                    2. Soạn Đáp Án Chi Tiết Cho Mã Đề: 
+                    2. Cấu Hình Môn Thi & Soạn Đáp Án Cho Mã Đề: 
                     <span class="code-badge">{chon_made}</span>
                 </div>
-                <div style="font-size: 13px; color: #64748b; font-weight: 500;">Tùy chỉnh số câu hỏi và đáp án chuẩn cho từng phần thi (Phần I, II, III hoặc quét từ phiếu giáo viên)</div>
+                <div style="font-size: 13px; color: #64748b; font-weight: 500;">Chọn nhanh định dạng môn thi chuẩn Bộ GD&ĐT 2025 hoặc tự do tùy biến số câu hỏi và thang điểm</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1002,26 +1003,119 @@ with tabs[1]:
         curr_p1 = data_de.get("phan1", {})
         curr_p2 = data_de.get("phan2", {})
         curr_p3 = data_de.get("phan3", {})
+        curr_mon = data_de.get("mon", "Toán (12 P.I + 4 P.II + 6 P.III)")
+        curr_diem_p1 = float(data_de.get("diem_moi_cau_p1", 0.25))
+        curr_diem_p3 = float(data_de.get("diem_moi_cau_p3", 0.50))
+
+        # CÁC NÚT CHỌN NHANH MÔN THI (1-CLICK PRESETS)
+        st.markdown("**🎯 Chọn nhanh định dạng môn thi (Chuẩn Bộ GD&ĐT 2025):**")
+        col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+
+        with col_m1:
+            if st.button("📐 Môn Toán\n(12 P1 + 4 P2 + 6 P3)", use_container_width=True, key=f"btn_pre_toan_{chon_made}"):
+                data_de["phan1"] = {str(i): curr_p1.get(str(i), "A") for i in range(1, 13)}
+                data_de["phan2"] = {str(i): curr_p2.get(str(i), {"a": "Đ", "b": "S", "c": "Đ", "d": "S"}) for i in range(1, 5)}
+                data_de["phan3"] = {str(i): curr_p3.get(str(i), "0") for i in range(1, 7)}
+                data_de["mon"] = "Toán (12 P.I + 4 P.II + 6 P.III)"
+                data_de["diem_moi_cau_p1"] = 0.25
+                data_de["diem_moi_cau_p3"] = 0.50
+                keys[chon_made] = data_de
+                st.session_state["active_keys"] = keys
+                save_user_keys(current_user, keys)
+                st.rerun()
+
+        with col_m2:
+            if st.button("🌐 Ngoại Ngữ\n(40 câu P1 - 0.25đ)", use_container_width=True, key=f"btn_pre_nn_{chon_made}"):
+                data_de["phan1"] = {str(i): curr_p1.get(str(i), "A") for i in range(1, 41)}
+                data_de["phan2"] = {}
+                data_de["phan3"] = {}
+                data_de["mon"] = "Ngoại ngữ / Tiếng Anh (40 câu P.I)"
+                data_de["diem_moi_cau_p1"] = 0.25
+                data_de["diem_moi_cau_p3"] = 0.0
+                keys[chon_made] = data_de
+                st.session_state["active_keys"] = keys
+                save_user_keys(current_user, keys)
+                st.rerun()
+
+        with col_m3:
+            if st.button("📜 KH Xã Hội\n(24 P1 + 4 P2)", use_container_width=True, key=f"btn_pre_khxh_{chon_made}"):
+                data_de["phan1"] = {str(i): curr_p1.get(str(i), "A") for i in range(1, 25)}
+                data_de["phan2"] = {str(i): curr_p2.get(str(i), {"a": "Đ", "b": "S", "c": "Đ", "d": "S"}) for i in range(1, 5)}
+                data_de["phan3"] = {}
+                data_de["mon"] = "Lịch sử / Địa lí / GDKT&PL (24 P.I + 4 P.II)"
+                data_de["diem_moi_cau_p1"] = 0.25
+                data_de["diem_moi_cau_p3"] = 0.0
+                keys[chon_made] = data_de
+                st.session_state["active_keys"] = keys
+                save_user_keys(current_user, keys)
+                st.rerun()
+
+        with col_m4:
+            if st.button("🔬 KH Tự Nhiên\n(18 P1 + 4 P2 + 6 P3)", use_container_width=True, key=f"btn_pre_khtn_{chon_made}"):
+                data_de["phan1"] = {str(i): curr_p1.get(str(i), "A") for i in range(1, 19)}
+                data_de["phan2"] = {str(i): curr_p2.get(str(i), {"a": "Đ", "b": "S", "c": "Đ", "d": "S"}) for i in range(1, 5)}
+                data_de["phan3"] = {str(i): curr_p3.get(str(i), "0") for i in range(1, 7)}
+                data_de["mon"] = "Vật lí / Hóa / Sinh / Tin / CN (18 P.I + 4 P.II + 6 P.III)"
+                data_de["diem_moi_cau_p1"] = 0.25
+                data_de["diem_moi_cau_p3"] = 0.25
+                keys[chon_made] = data_de
+                st.session_state["active_keys"] = keys
+                save_user_keys(current_user, keys)
+                st.rerun()
+
+        with col_m5:
+            if st.button("⚙️ Tùy Biến\n(Tự cấu hình)", use_container_width=True, key=f"btn_pre_custom_{chon_made}"):
+                data_de["mon"] = "Tùy biến cấu hình"
+                keys[chon_made] = data_de
+                st.session_state["active_keys"] = keys
+                save_user_keys(current_user, keys)
+                st.rerun()
+
+        # Hiển thị tóm tắt cấu hình đang chọn
+        p1_pts = len(curr_p1) * curr_diem_p1
+        p2_pts = len(curr_p2) * 1.0
+        p3_pts = len(curr_p3) * curr_diem_p3
+        tong_pts = p1_pts + p2_pts + p3_pts
+
+        st.markdown(f"""
+        <div style="background: rgba(240, 249, 255, 0.9); border: 1.5px solid #bae6fd; border-radius: 12px; padding: 10px 16px; margin: 12px 0 16px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <span style="font-weight: 700; color: #0369a1; font-size: 13.5px;">📌 Đang áp dụng: <b>{curr_mon}</b></span>
+            <span class="badge-pill badge-primary">P.I: {len(curr_p1)} câu ({p1_pts:.2f}đ)</span>
+            <span class="badge-pill badge-primary">P.II: {len(curr_p2)} câu ({p2_pts:.2f}đ)</span>
+            <span class="badge-pill badge-primary">P.III: {len(curr_p3)} câu ({p3_pts:.2f}đ)</span>
+            <span class="badge-pill badge-success" style="font-size: 13px; font-weight: 800;">Tổng điểm tối đa: {tong_pts:.2f}đ</span>
+        </div>
+        """, unsafe_allow_html=True)
 
         p_tabs = st.tabs([
-            "1️⃣ Phần I: Trắc Nghiệm 4 Lựa Chọn (A-B-C-D)",
-            "2️⃣ Phần II: Trắc Nghiệm Đúng / Sai",
-            "3️⃣ Phần III: Trả Lời Ngắn (Số / Thập phân)",
+            f"1️⃣ Phần I: 4 Lựa Chọn ({len(curr_p1)} câu)",
+            f"2️⃣ Phần II: Đúng / Sai ({len(curr_p2)} câu)",
+            f"3️⃣ Phần III: Trả Lời Ngắn ({len(curr_p3)} câu)",
             "📸 Quét Phiếu Đáp Án Giáo Viên"
         ])
 
         # ---- SUBTAB PHẦN I ----
         with p_tabs[0]:
             with st.container(border=True):
-                c_p1_num, c_p1_quick = st.columns([1, 2])
+                c_p1_num, c_p1_diem, c_p1_quick = st.columns([1, 1, 2])
                 with c_p1_num:
                     so_cau_p1 = st.number_input(
                         "Số câu hỏi Phần I:",
-                        min_value=1,
+                        min_value=0,
                         max_value=40,
-                        value=len(curr_p1) if len(curr_p1) > 0 else 12,
+                        value=len(curr_p1) if len(curr_p1) > 0 else (40 if "Ngoại ngữ" in curr_mon else 12),
                         step=1,
                         key=f"num_p1_{chon_made}"
+                    )
+                with c_p1_diem:
+                    diem_val_p1 = st.number_input(
+                        "Điểm mỗi câu P.I:",
+                        min_value=0.05,
+                        max_value=2.0,
+                        value=curr_diem_p1,
+                        step=0.05,
+                        format="%.2f",
+                        key=f"diem_p1_{chon_made}"
                     )
                 with c_p1_quick:
                     def_str = "".join([curr_p1.get(str(i), "A") for i in range(1, so_cau_p1 + 1)])
@@ -1031,88 +1125,117 @@ with tabs[1]:
                         key=f"quick_str_{chon_made}"
                     )
 
-            clean_chars = re.sub(r"[^ABCDabcd]", "", quick_str).upper()
+            if so_cau_p1 > 0:
+                clean_chars = re.sub(r"[^ABCDabcd]", "", quick_str).upper()
+                st.write("Bảng chọn đáp án từng câu Phần I:")
+                grid_cols = st.columns(4)
+                for i in range(1, so_cau_p1 + 1):
+                    target_col = grid_cols[(i - 1) % 4]
+                    default_val = clean_chars[i - 1] if i - 1 < len(clean_chars) else curr_p1.get(str(i), "A")
+                    idx_opt = ["A", "B", "C", "D"].index(default_val) if default_val in ["A", "B", "C", "D"] else 0
+                    with target_col:
+                        with st.container(border=True):
+                            st.markdown(f"**Câu {i}:**")
+                            sel_opt = st.selectbox(
+                                f"Đáp án Câu {i}:",
+                                options=["A", "B", "C", "D"],
+                                index=idx_opt,
+                                key=f"p1_sel_{chon_made}_{i}",
+                                label_visibility="collapsed"
+                            )
+                            curr_p1[str(i)] = sel_opt
+                data_de["phan1"] = {str(i): curr_p1[str(i)] for i in range(1, so_cau_p1 + 1)}
+            else:
+                data_de["phan1"] = {}
+                st.info("Phần I hiện có 0 câu hỏi.")
 
-            st.write("Bảng chọn đáp án từng câu:")
-            grid_cols = st.columns(4)
-            for i in range(1, so_cau_p1 + 1):
-                target_col = grid_cols[(i - 1) % 4]
-                default_val = clean_chars[i - 1] if i - 1 < len(clean_chars) else curr_p1.get(str(i), "A")
-                idx_opt = ["A", "B", "C", "D"].index(default_val) if default_val in ["A", "B", "C", "D"] else 0
-                with target_col:
-                    with st.container(border=True):
-                        st.markdown(f"**Câu {i}:**")
-                        sel_opt = st.selectbox(
-                            f"Đáp án Câu {i}:",
-                            options=["A", "B", "C", "D"],
-                            index=idx_opt,
-                            key=f"p1_sel_{chon_made}_{i}",
-                            label_visibility="collapsed"
-                        )
-                        curr_p1[str(i)] = sel_opt
-
-            data_de["phan1"] = {str(i): curr_p1[str(i)] for i in range(1, so_cau_p1 + 1)}
-
-        # ---- SUBTAB PHẦN II (ĐÚNG NHƯ ẢNH BẠN THÍCH) ----
+        # ---- SUBTAB PHẦN II (ĐÚNG / SAI) ----
         with p_tabs[1]:
             so_cau_p2 = st.number_input(
                 "Số câu hỏi Phần II (mỗi câu gồm 4 ý a, b, c, d):",
-                min_value=1,
+                min_value=0,
                 max_value=8,
-                value=len(curr_p2) if len(curr_p2) > 0 else 4,
+                value=len(curr_p2),
                 step=1,
                 key=f"num_p2_{chon_made}"
             )
 
-            p2_cards = st.columns(min(so_cau_p2, 4))
-            for q_i in range(1, so_cau_p2 + 1):
-                col_target = p2_cards[(q_i - 1) % len(p2_cards)]
-                with col_target:
-                    with st.container(border=True):
-                        st.markdown(f"**Câu {q_i}:**")
-                        sub_dict = curr_p2.get(str(q_i), {"a": "Đ", "b": "S", "c": "Đ", "d": "S"})
-                        updated_sub = {}
-                        for s in ["a", "b", "c", "d"]:
-                            cur_s = str(sub_dict.get(s, "Đ")).upper()
-                            c_choice = st.radio(
-                                f"Ý {s}):",
-                                options=["Đúng (Đ)", "Sai (S)"],
-                                index=0 if cur_s in ("Đ", "D") else 1,
-                                key=f"p2_r_{chon_made}_{q_i}_{s}",
-                                horizontal=True
-                            )
-                            updated_sub[s] = "Đ" if "Đúng" in c_choice else "S"
-                        curr_p2[str(q_i)] = updated_sub
-
-            data_de["phan2"] = {str(i): curr_p2[str(i)] for i in range(1, so_cau_p2 + 1)}
+            if so_cau_p2 > 0:
+                p2_cards = st.columns(min(so_cau_p2, 4))
+                for q_i in range(1, so_cau_p2 + 1):
+                    col_target = p2_cards[(q_i - 1) % len(p2_cards)]
+                    with col_target:
+                        with st.container(border=True):
+                            st.markdown(f"**Câu {q_i}:**")
+                            sub_dict = curr_p2.get(str(q_i), {"a": "Đ", "b": "S", "c": "Đ", "d": "S"})
+                            updated_sub = {}
+                            for s in ["a", "b", "c", "d"]:
+                                cur_s = str(sub_dict.get(s, "Đ")).upper()
+                                c_choice = st.radio(
+                                    f"Ý {s}):",
+                                    options=["Đúng (Đ)", "Sai (S)"],
+                                    index=0 if cur_s in ("Đ", "D") else 1,
+                                    key=f"p2_r_{chon_made}_{q_i}_{s}",
+                                    horizontal=True
+                                )
+                                updated_sub[s] = "Đ" if "Đúng" in c_choice else "S"
+                            curr_p2[str(q_i)] = updated_sub
+                data_de["phan2"] = {str(i): curr_p2[str(i)] for i in range(1, so_cau_p2 + 1)}
+            else:
+                data_de["phan2"] = {}
+                st.info("💡 Môn này hiện không có câu hỏi Đúng / Sai Phần II (0 câu). Tăng số câu ở trên nếu đề thi của bạn có Phần II.")
 
         # ---- SUBTAB PHẦN III ----
         with p_tabs[2]:
-            st.markdown("**Soạn đáp án Phần III (Điền số thực, số âm, số thập phân):**")
-            st.caption("Ví dụ: `12`, `-3.5`, `0.25`, `2025`, `-12`, `100`")
+            c_p3_num, c_p3_diem = st.columns([1, 1])
+            with c_p3_num:
+                so_cau_p3 = st.number_input(
+                    "Số câu hỏi Phần III (trả lời ngắn):",
+                    min_value=0,
+                    max_value=6,
+                    value=len(curr_p3),
+                    step=1,
+                    key=f"num_p3_{chon_made}"
+                )
+            with c_p3_diem:
+                diem_val_p3 = st.number_input(
+                    "Điểm mỗi câu P.III:",
+                    min_value=0.05,
+                    max_value=2.0,
+                    value=curr_diem_p3,
+                    step=0.05,
+                    format="%.2f",
+                    key=f"diem_p3_{chon_made}"
+                )
 
-            p3_cards = st.columns(3)
-            for q_i in range(1, 7):
-                with p3_cards[(q_i - 1) % 3]:
-                    with st.container(border=True):
-                        cur_v = curr_p3.get(str(q_i), "0")
-                        in_v = st.text_input(
-                            f"Câu {q_i}:",
-                            value=str(cur_v),
-                            key=f"p3_txt_{chon_made}_{q_i}",
-                            placeholder="VD: 12 hoặc -3.5"
-                        )
-                        curr_p3[str(q_i)] = str(in_v).strip()
+            if so_cau_p3 > 0:
+                st.markdown("**Soạn đáp án Phần III (Điền số thực, số âm, số thập phân):**")
+                st.caption("Ví dụ: `12`, `-3.5`, `0.25`, `2025`, `-12`, `100`")
 
-                        chars_preview = list(str(in_v).strip().replace(".", ","))[:4]
-                        if chars_preview:
-                            preview_html = '<div style="margin-top: 6px;"><span style="font-size: 11px; color: #64748b; font-weight: 600;">Mô phỏng ô tô: </span>'
-                            for ch in chars_preview:
-                                preview_html += f'<span class="bubble-mini">{ch}</span>'
-                            preview_html += '</div>'
-                            st.markdown(preview_html, unsafe_allow_html=True)
+                p3_cards = st.columns(3)
+                for q_i in range(1, so_cau_p3 + 1):
+                    with p3_cards[(q_i - 1) % 3]:
+                        with st.container(border=True):
+                            cur_v = curr_p3.get(str(q_i), "0")
+                            in_v = st.text_input(
+                                f"Câu {q_i}:",
+                                value=str(cur_v),
+                                key=f"p3_txt_{chon_made}_{q_i}",
+                                placeholder="VD: 12 hoặc -3.5"
+                            )
+                            curr_p3[str(q_i)] = str(in_v).strip()
 
-            data_de["phan3"] = curr_p3
+                            chars_preview = list(str(in_v).strip().replace(".", ","))[:4]
+                            if chars_preview:
+                                preview_html = '<div style="margin-top: 6px;"><span style="font-size: 11px; color: #64748b; font-weight: 600;">Mô phỏng ô tô: </span>'
+                                for ch in chars_preview:
+                                    preview_html += f'<span class="bubble-mini">{ch}</span>'
+                                preview_html += '</div>'
+                                st.markdown(preview_html, unsafe_allow_html=True)
+                data_de["phan3"] = {str(i): curr_p3[str(i)] for i in range(1, so_cau_p3 + 1)}
+            else:
+                data_de["phan3"] = {}
+                st.info("💡 Môn này hiện không có câu hỏi Trả lời ngắn Phần III (0 câu). Tăng số câu ở trên nếu đề thi của bạn có Phần III.")
 
         # ---- SUBTAB QUÉT PHIẾU GV ----
         with p_tabs[3]:
@@ -1125,6 +1248,9 @@ with tabs[1]:
                     code_gv, data_gv = tao_dap_an_tu_anh_phieu(img_gv)
                     st.success(f"Quét thành công! Mã đề trên phiếu: **{code_gv}**.")
                     if st.button(f"Áp dụng vào mã đề {chon_made}"):
+                        data_gv["mon"] = curr_mon
+                        data_gv["diem_moi_cau_p1"] = diem_val_p1
+                        data_gv["diem_moi_cau_p3"] = diem_val_p3
                         keys[chon_made] = data_gv
                         st.session_state["active_keys"] = keys
                         save_user_keys(current_user, keys)
@@ -1138,6 +1264,9 @@ with tabs[1]:
         save_c1, save_c2 = st.columns([1, 2])
         with save_c1:
             if st.button(f"💾 LƯU ĐÁP ÁN MÃ ĐỀ {chon_made}", type="primary"):
+                data_de["mon"] = curr_mon
+                data_de["diem_moi_cau_p1"] = diem_val_p1
+                data_de["diem_moi_cau_p3"] = diem_val_p3
                 keys[chon_made] = data_de
                 st.session_state["active_keys"] = keys
                 save_user_keys(current_user, keys)
@@ -1149,46 +1278,196 @@ with tabs[1]:
 # TAB 3: CHẤM THI & BÁO CÁO CHI TIẾT
 # ==========================================
 with tabs[2]:
+    # 1. KHỚP DANH SÁCH HỌC SINH (STUDENT ROSTER MAPPING)
+    with st.expander("📋 Khớp Danh Sách Học Sinh (Excel / CSV) — Tự động điền Họ tên & Lớp", expanded=("student_roster" in st.session_state)):
+        r_c1, r_c2 = st.columns([1.5, 1])
+        with r_c1:
+            f_roster = st.file_uploader(
+                "Tải lên tệp danh sách học sinh (.xlsx, .xls, .csv):",
+                type=["xlsx", "xls", "csv"],
+                key="uploader_roster_file"
+            )
+            if f_roster is not None:
+                try:
+                    if f_roster.name.endswith(".csv"):
+                        df_roster = pd.read_csv(f_roster)
+                    else:
+                        df_roster = pd.read_excel(f_roster)
+
+                    # Nhận diện cột thông minh (SBD, Họ và tên, Lớp)
+                    col_sbd, col_name, col_class = None, None, None
+                    for c in df_roster.columns:
+                        c_clean = str(c).strip().lower()
+                        if not col_sbd and any(k in c_clean for k in ["sbd", "số báo danh", "so bao danh", "mã học sinh", "ma hoc sinh", "id", "thí sinh"]):
+                            col_sbd = c
+                        elif not col_name and any(k in c_clean for k in ["họ và tên", "ho va ten", "họ tên", "ho ten", "tên", "ten", "học sinh", "name"]):
+                            col_name = c
+                        elif not col_class and any(k in c_clean for k in ["lớp", "lop", "class"]):
+                            col_class = c
+
+                    if col_sbd and col_name:
+                        roster_map = {}
+                        for _, r in df_roster.iterrows():
+                            sbd_raw = str(r[col_sbd]).strip()
+                            if sbd_raw.endswith(".0"):
+                                sbd_raw = sbd_raw[:-2]
+                            t_val = str(r[col_name]).strip()
+                            l_val = str(r[col_class]).strip() if col_class else "—"
+
+                            item = {"ten": t_val, "lop": l_val}
+                            roster_map[sbd_raw] = item
+                            roster_map[sbd_raw.zfill(6)] = item
+                            roster_map[sbd_raw.lstrip("0")] = item
+
+                        st.session_state["student_roster"] = roster_map
+                        st.session_state["roster_filename"] = f_roster.name
+                        cols_to_preview = [col_sbd, col_name] + ([col_class] if col_class else [])
+                        st.session_state["roster_preview"] = df_roster[cols_to_preview].head(5)
+                        st.success(f"✅ Đã liên kết danh sách: **{len(df_roster)} học sinh** từ file `{f_roster.name}`!")
+                    else:
+                        st.error("Không tìm thấy cột Số Báo Danh (SBD) hoặc cột Họ và tên trong file. Vui lòng kiểm tra lại dòng tiêu đề.")
+                except Exception as ex:
+                    st.error(f"Lỗi khi đọc file danh sách học sinh: {ex}")
+
+        with r_c2:
+            if "student_roster" in st.session_state:
+                st.markdown(f"**Đang áp dụng danh sách:** `{st.session_state.get('roster_filename', 'danh_sach.xlsx')}`")
+                if "roster_preview" in st.session_state:
+                    st.dataframe(st.session_state["roster_preview"], hide_index=True, use_container_width=True)
+                if st.button("🗑️ Hủy liên kết danh sách này", type="secondary", key="btn_clear_roster"):
+                    del st.session_state["student_roster"]
+                    if "roster_filename" in st.session_state:
+                        del st.session_state["roster_filename"]
+                    if "roster_preview" in st.session_state:
+                        del st.session_state["roster_preview"]
+                    st.rerun()
+            else:
+                st.info("💡 Mẹo: File danh sách chỉ cần gồm các cột: **SBD** (ví dụ 000101 hoặc 101), **Họ và tên**, và **Lớp** (tùy chọn).")
+
+    # 2. CHỌN PHƯƠNG THỨC CHẤM: TẢI TỆP HÀNG LOẠT HOẶC QUÉT CAMERA TRỰC TIẾP
     with st.container(border=True):
         st.markdown("""
         <div class="glass-header">
             <div class="glass-header-icon">📤</div>
             <div>
-                <div style="font-size: 19px; font-weight: 800; color: #0f172a;">Tải Ảnh Bài Thi Học Sinh & Chấm Tự Động</div>
-                <div style="font-size: 13px; color: #64748b;">Hỗ trợ ảnh chụp camera điện thoại (nghiêng, ngược sáng, xoay 180°), JPG, PNG</div>
+                <div style="font-size: 19px; font-weight: 800; color: #0f172a;">Chấm Bài Thi Trắc Nghiệm</div>
+                <div style="font-size: 13px; color: #64748b;">Hỗ trợ ảnh chụp camera điện thoại (nghiêng, ngược sáng, xoay 180°), JPG, PNG hoặc quét trực tiếp từ webcam/camera</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        uploaded_files = st.file_uploader(
-            "Kéo thả hoặc chọn các ảnh bài thi cần chấm:",
-            type=["jpg", "jpeg", "png"],
-            accept_multiple_files=True
-        )
+        sub_tab_upload, sub_tab_camera = st.tabs([
+            "📁 Tải Lên Tệp Hàng Loạt (Batch Upload)",
+            "📸 Quét Trực Tiếp Bằng Camera (Live Scan)"
+        ])
 
         bo_da_dung = st.session_state.get("active_keys", {})
+        roster_data = st.session_state.get("student_roster")
 
-        if uploaded_files and bo_da_dung:
-            if st.button("🚀 BẮT ĐẦU CHẤM TẤT CẢ BÀI THI", type="primary"):
-                prog_bar = st.progress(0.0)
-                rows = []
-                graded_images = []
+        # ---- CHẾ ĐỘ 1: TẢI TỆP HÀNG LOẠT ----
+        with sub_tab_upload:
+            uploaded_files = st.file_uploader(
+                "Kéo thả hoặc chọn các ảnh bài thi cần chấm (JPG, PNG, WebP):",
+                type=["jpg", "jpeg", "png", "webp"],
+                accept_multiple_files=True,
+                key="batch_file_uploader"
+            )
 
-                for idx, file in enumerate(uploaded_files):
-                    img = doc_anh(file.getvalue())
-                    row, anh_cham = xu_ly_file_bggdt(file.name, img, bo_da_dung)
-                    rows.append(row)
-                    if anh_cham is not None:
-                        graded_images.append((file.name, anh_cham, row))
-                    prog_bar.progress((idx + 1) / len(uploaded_files))
+            if uploaded_files and bo_da_dung:
+                if st.button("🚀 BẮT ĐẦU CHẤM TẤT CẢ BÀI THI", type="primary", key="btn_run_batch"):
+                    prog_bar = st.progress(0.0)
+                    status_text = st.empty()
+                    rows = []
+                    graded_images = []
 
-                st.session_state["results_df"] = pd.DataFrame(rows)
-                st.session_state["graded_images"] = graded_images
-                st.success(f"🎉 Hoàn tất chấm {len(uploaded_files)} bài thi!")
+                    for idx, file in enumerate(uploaded_files):
+                        status_text.text(f"Đang chấm bài {idx + 1}/{len(uploaded_files)}: {file.name}...")
+                        img = doc_anh(file.getvalue())
 
-    if "results_df" in st.session_state:
+                        row, anh_cham = xu_ly_file_bggdt(
+                            ten_file=file.name,
+                            img=img,
+                            bo_dap_an=bo_da_dung,
+                            cau_hinh_diem=None,
+                            danh_sach_hoc_sinh=roster_data
+                        )
+                        rows.append(row)
+                        if anh_cham is not None:
+                            graded_images.append((file.name, anh_cham, row))
+                        prog_bar.progress((idx + 1) / len(uploaded_files))
+
+                    status_text.empty()
+                    st.session_state["results_df"] = pd.DataFrame(rows)
+                    st.session_state["graded_images"] = graded_images
+                    st.success(f"🎉 Hoàn tất chấm {len(uploaded_files)} bài thi!")
+                    st.rerun()
+
+        # ---- CHẾ ĐỘ 2: QUÉT TRỰC TIẾP BẰNG CAMERA ----
+        with sub_tab_camera:
+            st.markdown("""
+            <div style="font-size: 13.5px; color: #475569; margin-bottom: 10px;">
+                📸 <b>Hướng dẫn quét camera:</b> Cầm điện thoại hoặc đặt phiếu trước webcam sao cho tờ phiếu nằm phẳng, đủ ánh sáng, và nhìn rõ 4 ô vuông đen định vị ở 4 góc phiếu. Sau đó bấm <b>Chụp ảnh</b>:
+            </div>
+            """, unsafe_allow_html=True)
+
+            cam_shot = st.camera_input("📸 Khung chụp Camera trực tiếp:", key="camera_shot_input")
+
+            if cam_shot is not None:
+                try:
+                    img_cam = doc_anh(cam_shot.getvalue())
+                    c_row, c_anh = xu_ly_file_bggdt(
+                        ten_file=f"Cam_Scan_{len(st.session_state.get('results_df', [])) + 1}.jpg",
+                        img=img_cam,
+                        bo_dap_an=bo_da_dung,
+                        cau_hinh_diem=None,
+                        danh_sach_hoc_sinh=roster_data
+                    )
+
+                    if c_anh is not None:
+                        st.success(f"🎉 Nhận diện thành công! SBD: **{c_row['SBD']}** | Mã đề: **{c_row['Mã đề']}** | Tổng điểm: **{c_row['Tổng điểm']}đ**")
+
+                        cam_c1, cam_c2 = st.columns([1.1, 1.2])
+                        with cam_c1:
+                            st.markdown(f"""
+                            <div style="background: white; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+                                <div style="font-size: 18px; font-weight: 800; color: #0f172a;">Thí sinh: {c_row['Họ và tên']}</div>
+                                <div style="font-size: 13px; color: #64748b;">Lớp: <b>{c_row['Lớp']}</b> | SBD: <b>{c_row['SBD']}</b> | Mã đề: <b>{c_row['Mã đề']}</b></div>
+                                <div style="font-size: 28px; font-weight: 800; color: #16a34a; margin-top: 6px;">{c_row['Tổng điểm']} điểm</div>
+                                <div style="font-size: 13px; margin-top: 4px;">• Phần I: <b>{c_row['Điểm Phần I']}đ</b> ({c_row['P1 Đúng']})</div>
+                                <div style="font-size: 13px;">• Phần II: <b>{c_row['Điểm Phần II']}đ</b></div>
+                                <div style="font-size: 13px;">• Phần III: <b>{c_row['Điểm Phần III']}đ</b> ({c_row['P3 Đúng']})</div>
+                                <div style="margin-top: 8px;"><span class="badge-pill {'badge-success' if '✅' in c_row['Cảnh báo'] else 'badge-warning'}">{c_row['Cảnh báo']}</span></div>
+                            </div>
+                            """, unsafe_allow_html=True)
+
+                            if st.button("➕ LƯU BÀI NÀY VÀO BẢNG ĐIỂM TỔNG HỢP", type="primary", key="btn_save_cam_result"):
+                                if "results_df" not in st.session_state:
+                                    st.session_state["results_df"] = pd.DataFrame([c_row])
+                                else:
+                                    existing_df = st.session_state["results_df"]
+                                    st.session_state["results_df"] = pd.concat([existing_df, pd.DataFrame([c_row])], ignore_index=True)
+
+                                if "graded_images" not in st.session_state:
+                                    st.session_state["graded_images"] = []
+                                st.session_state["graded_images"].append((c_row["Tên file"], c_anh, c_row))
+                                st.toast(f"✅ Đã thêm bài của SBD {c_row['SBD']} vào bảng điểm tổng hợp!", icon="🎉")
+                                st.rerun()
+
+                        with cam_c2:
+                            st.image(c_anh, caption=f"Phiếu chấm trực quan từ Camera (SBD: {c_row['SBD']})", use_container_width=True)
+                    else:
+                        st.error(f"⚠️ {c_row.get('Cảnh báo', c_row.get('Ghi chú'))}. Vui lòng căn chỉnh lại góc máy ảnh và chụp lại.")
+                except Exception as ex_cam:
+                    st.error(f"⚠️ Lỗi quét camera: {ex_cam}. Vui lòng chụp rõ 4 góc định vị.")
+
+    # 3. BẢNG TỔNG HỢP KẾT QUẢ, THỐNG KÊ KPI & CẢNH BÁO BẤT THƯỜNG
+    if "results_df" in st.session_state and not st.session_state["results_df"].empty:
         df_res = st.session_state["results_df"]
-        diem_col = df_res["Tổng điểm"].dropna()
+        diem_col = pd.to_numeric(df_res["Tổng điểm"], errors="coerce").dropna()
+
+        # Đếm số cảnh báo & hợp lệ
+        so_canh_bao = sum(1 for c in df_res.get("Cảnh báo", []) if "⚠️" in str(c))
+        so_hop_le = len(df_res) - so_canh_bao
 
         # THỐNG KÊ KPI CARDS
         with st.container(border=True):
@@ -1197,12 +1476,12 @@ with tabs[2]:
                 <div class="glass-header-icon">📊</div>
                 <div>
                     <div style="font-size: 19px; font-weight: 800; color: #0f172a;">Tổng Quan Kết Quả Đợt Thi</div>
-                    <div style="font-size: 13px; color: #64748b;">Chỉ số thống kê học lực và phân bố điểm số</div>
+                    <div style="font-size: 13px; color: #64748b;">Chỉ số thống kê học lực, cảnh báo bất thường và phân bố điểm số</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            kpi_1, kpi_2, kpi_3, kpi_4, kpi_5, kpi_6 = st.columns(6)
+            kpi_1, kpi_2, kpi_3, kpi_4, kpi_5, kpi_6, kpi_7 = st.columns(7)
             with kpi_1:
                 st.markdown(f"""
                 <div class="stat-card">
@@ -1213,26 +1492,35 @@ with tabs[2]:
             with kpi_2:
                 st.markdown(f"""
                 <div class="stat-card">
-                    <div class="stat-value" style="color: #0284c7;">{diem_col.mean():.2f}</div>
-                    <div class="stat-label">Điểm Trung Bình</div>
+                    <div class="stat-value" style="color: #16a34a;">{so_hop_le}</div>
+                    <div class="stat-label">Bài Hợp Lệ</div>
                 </div>
                 """, unsafe_allow_html=True)
             with kpi_3:
                 st.markdown(f"""
-                <div class="stat-card">
-                    <div class="stat-value" style="color: #16a34a;">{diem_col.max():.2f}</div>
-                    <div class="stat-label">Điểm Cao Nhất</div>
+                <div class="stat-card" style="{'border-color: #f59e0b;' if so_canh_bao > 0 else ''}">
+                    <div class="stat-value" style="color: {'#d97706' if so_canh_bao > 0 else '#64748b'};">{so_canh_bao}</div>
+                    <div class="stat-label">Cần Lưu Ý / Lỗi</div>
                 </div>
                 """, unsafe_allow_html=True)
             with kpi_4:
+                avg_val = diem_col.mean() if len(diem_col) > 0 else 0.0
                 st.markdown(f"""
                 <div class="stat-card">
-                    <div class="stat-value" style="color: #ea580c;">{diem_col.min():.2f}</div>
-                    <div class="stat-label">Điểm Thấp Nhất</div>
+                    <div class="stat-value" style="color: #0284c7;">{avg_val:.2f}</div>
+                    <div class="stat-label">Điểm Trung Bình</div>
                 </div>
                 """, unsafe_allow_html=True)
             with kpi_5:
-                so_dat = int((diem_col >= 5.0).sum())
+                max_val = diem_col.max() if len(diem_col) > 0 else 0.0
+                st.markdown(f"""
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #16a34a;">{max_val:.2f}</div>
+                    <div class="stat-label">Điểm Cao Nhất</div>
+                </div>
+                """, unsafe_allow_html=True)
+            with kpi_6:
+                so_dat = int((diem_col >= 5.0).sum()) if len(diem_col) > 0 else 0
                 pct_dat = (so_dat / len(diem_col) * 100) if len(diem_col) > 0 else 0
                 st.markdown(f"""
                 <div class="stat-card">
@@ -1240,8 +1528,8 @@ with tabs[2]:
                     <div class="stat-label">Tỉ Lệ Đạt (≥ 5.0)</div>
                 </div>
                 """, unsafe_allow_html=True)
-            with kpi_6:
-                so_gioi = int((diem_col >= 8.0).sum())
+            with kpi_7:
+                so_gioi = int((diem_col >= 8.0).sum()) if len(diem_col) > 0 else 0
                 pct_gioi = (so_gioi / len(diem_col) * 100) if len(diem_col) > 0 else 0
                 st.markdown(f"""
                 <div class="stat-card">
@@ -1251,18 +1539,41 @@ with tabs[2]:
                 """, unsafe_allow_html=True)
 
             st.write("")
-            buf = io.BytesIO()
-            cols_export = [c for c in df_res.columns if c != "_details"]
-            df_res[cols_export].to_excel(buf, index=False, sheet_name="Bảng Điểm")
-            st.download_button(
-                "⬇️ TẢI BẢNG ĐIỂM EXCEL ĐẦY ĐỦ (.XLSX)",
-                buf.getvalue(),
-                file_name="bang_diem_bggdt_2025.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                type="primary"
-            )
 
-            st.dataframe(df_res[cols_export], hide_index=True)
+            # Nút Tải Excel và nút Xóa làm mới
+            down_c1, down_c2 = st.columns([1.5, 1])
+
+            # Chuẩn bị cột xuất dữ liệu
+            cols_export_order = [
+                "SBD", "Họ và tên", "Lớp", "Mã đề", "Tổng điểm",
+                "Điểm Phần I", "Điểm Phần II", "Điểm Phần III",
+                "P1 Đúng", "P3 Đúng", "Cảnh báo", "Tên file"
+            ]
+            df_export = df_res.copy()
+            if "STT" not in df_export.columns:
+                df_export.insert(0, "STT", range(1, len(df_export) + 1))
+
+            cols_avail = ["STT"] + [c for c in cols_export_order if c in df_export.columns]
+
+            with down_c1:
+                buf = io.BytesIO()
+                df_export[cols_avail].to_excel(buf, index=False, sheet_name="Bảng Điểm")
+                st.download_button(
+                    "⬇️ TẢI BẢNG ĐIỂM EXCEL ĐẦY ĐỦ (.XLSX)",
+                    buf.getvalue(),
+                    file_name="bang_diem_bggdt_2025.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary"
+                )
+
+            with down_c2:
+                if st.button("🗑️ Xóa kết quả & Chấm đợt mới", type="secondary", key="btn_reset_results"):
+                    del st.session_state["results_df"]
+                    if "graded_images" in st.session_state:
+                        del st.session_state["graded_images"]
+                    st.rerun()
+
+            st.dataframe(df_export[cols_avail], hide_index=True, use_container_width=True)
 
             if len(diem_col) > 0:
                 st.markdown("#### 📈 Phổ Điểm Bài Thi (Histogram)")
@@ -1271,7 +1582,7 @@ with tabs[2]:
                 chart_data = pd.DataFrame({"Số lượng thí sinh": hist_vals}, index=labels)
                 st.bar_chart(chart_data)
 
-        # XEM TỪNG BÀI THI TRỰC QUAN (VISUAL SCORECARD)
+        # 4. XEM TỪNG BÀI THI TRỰC QUAN (VISUAL SCORECARD VỚI BỘ LỌC CẢNH BÁO)
         graded_imgs = st.session_state.get("graded_images", [])
         if graded_imgs:
             with st.container(border=True):
@@ -1280,52 +1591,80 @@ with tabs[2]:
                     <div class="glass-header-icon">🔍</div>
                     <div>
                         <div style="font-size: 19px; font-weight: 800; color: #0f172a;">Chi Tiết Từng Bài Thi & Khoanh Đáp Án</div>
-                        <div style="font-size: 13px; color: #64748b;">Xem ma trận điểm từng phần thi và ảnh phiếu chấm thực tế</div>
+                        <div style="font-size: 13px; color: #64748b;">Xem ma trận điểm từng phần thi, đối chiếu cảnh báo nghi vấn và ảnh phiếu chấm thực tế</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-                fil_c1, fil_c2 = st.columns([1, 2])
+                fil_c1, fil_c2 = st.columns([1.2, 1.8])
                 with fil_c1:
                     filter_opt = st.selectbox(
-                        "Bộ lọc kết quả:",
-                        options=["Tất cả bài thi", "Chỉ xem bài Giỏi (≥ 8.0)", "Chỉ xem bài Đạt (≥ 5.0)", "Chỉ xem bài Dưới TB (< 5.0)"],
+                        "Bộ lọc danh sách bài thi:",
+                        options=[
+                            "Tất cả bài thi",
+                            "⚠️ Chỉ xem bài CÓ CẢNH BÁO (Cần rà soát)",
+                            "✅ Chỉ xem bài HỢP LỆ (Không có lỗi)",
+                            "Chỉ xem bài Giỏi (≥ 8.0)",
+                            "Chỉ xem bài Đạt (≥ 5.0)",
+                            "Chỉ xem bài Dưới TB (< 5.0)"
+                        ],
                         key="filter_score_opt"
                     )
                 with fil_c2:
-                    search_txt = st.text_input("🔍 Tìm theo SBD hoặc tên file:", placeholder="VD: 000001...", key="txt_search_sbd")
+                    search_txt = st.text_input("🔍 Tìm theo SBD, Họ tên, hoặc tên file:", placeholder="VD: 000001, Nguyễn Văn A...", key="txt_search_sbd")
 
                 for fname, anh, row_data in graded_imgs:
-                    details = row_data.get("_details", {})
-                    score = row_data.get("Tổng điểm", 0) or 0.0
+                    details = row_data.get("_details", {}) or {}
+                    score = row_data.get("Tổng điểm", 0)
+                    score = float(score) if score is not None else 0.0
                     sbd_str = str(row_data.get("SBD", ""))
+                    ten_str = str(row_data.get("Họ và tên", "Chưa rõ"))
+                    lop_str = str(row_data.get("Lớp", "—"))
+                    canh_bao_str = str(row_data.get("Cảnh báo", "✅ Hợp lệ"))
+                    co_cb = "⚠️" in canh_bao_str
 
+                    if filter_opt == "⚠️ Chỉ xem bài CÓ CẢNH BÁO (Cần rà soát)" and not co_cb:
+                        continue
+                    if filter_opt == "✅ Chỉ xem bài HỢP LỆ (Không có lỗi)" and co_cb:
+                        continue
                     if filter_opt == "Chỉ xem bài Giỏi (≥ 8.0)" and score < 8.0:
                         continue
                     if filter_opt == "Chỉ xem bài Đạt (≥ 5.0)" and score < 5.0:
                         continue
                     if filter_opt == "Chỉ xem bài Dưới TB (< 5.0)" and score >= 5.0:
                         continue
+
                     if search_txt.strip():
                         q = search_txt.strip().lower()
-                        if q not in sbd_str.lower() and q not in fname.lower():
+                        if q not in sbd_str.lower() and q not in fname.lower() and q not in ten_str.lower():
                             continue
 
                     xep_loai = "Xuất sắc" if score >= 9.0 else ("Giỏi" if score >= 8.0 else ("Khá" if score >= 6.5 else ("Trung bình" if score >= 5.0 else "Yếu")))
 
-                    with st.expander(f"📄 Bài thi: {fname} — SBD: {sbd_str} | Mã đề: {row_data.get('Mã đề', '-')} | Điểm: {score:.2f} ({xep_loai})", expanded=True):
+                    header_badge = f"⚠️ {canh_bao_str}" if co_cb else f"{score:.2f}đ ({xep_loai})"
+                    with st.expander(f"📄 Bài thi: {fname} — SBD: {sbd_str} | {ten_str} ({lop_str}) | Mã đề: {row_data.get('Mã đề', '-')} | {header_badge}", expanded=co_cb):
                         card_left, card_right = st.columns([1.1, 1.1])
 
                         with card_left:
+                            # Banner thông báo cảnh báo nếu bài có vấn đề
+                            if co_cb:
+                                st.markdown(f"""
+                                <div style="background: #fef3c7; border: 1.5px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; color: #b45309; font-size: 13.5px; font-weight: 700;">
+                                    ⚠️ <b>CẢNH BÁO NGHI VẤN:</b> {canh_bao_str.replace('⚠️', '').strip()}
+                                    <div style="font-size: 12px; font-weight: 500; color: #92400e; margin-top: 4px;">Giáo viên vui lòng đối chiếu ảnh phiếu chấm bên cạnh để xác minh!</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+
                             st.markdown(f"""
                             <div style="background: rgba(248, 250, 252, 0.85); border: 1.5px solid rgba(226, 232, 240, 0.9); border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div>
-                                        <div style="font-size: 20px; font-weight: 800; color: #0f172a;">SBD: {sbd_str}</div>
-                                        <div style="font-size: 13.5px; color: #64748b;">Mã đề: <b>{row_data.get('Mã đề', '-')}</b> | Tệp: {fname}</div>
+                                        <div style="font-size: 18px; font-weight: 800; color: #0f172a;">{ten_str}</div>
+                                        <div style="font-size: 13px; color: #64748b;">SBD: <b>{sbd_str}</b> | Lớp: <b>{lop_str}</b> | Mã đề: <b>{row_data.get('Mã đề', '-')}</b></div>
+                                        <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Tệp: {fname}</div>
                                     </div>
                                     <div style="text-align: right;">
-                                        <div style="font-size: 32px; font-weight: 800; color: {'#16a34a' if score >= 8 else ('#ea580c' if score >= 5 else '#dc2626')};">
+                                        <div style="font-size: 30px; font-weight: 800; color: {'#16a34a' if score >= 8 else ('#ea580c' if score >= 5 else '#dc2626')};">
                                             {score:.2f}đ
                                         </div>
                                         <span class="badge-pill {'badge-success' if score >= 8 else ('badge-warning' if score >= 5 else 'badge-danger')}">{xep_loai}</span>
@@ -1334,36 +1673,55 @@ with tabs[2]:
                             </div>
                             """, unsafe_allow_html=True)
 
-                            st.markdown("**Điểm thành phần 3 phần thi:**")
-                            p1_d = row_data.get("Điểm Phần I", 0) or 0.0
-                            p2_d = row_data.get("Điểm Phần II", 0) or 0.0
-                            p3_d = row_data.get("Điểm Phần III", 0) or 0.0
+                            st.markdown("**Điểm thành phần:**")
+                            p1_d = float(row_data.get("Điểm Phần I", 0) or 0.0)
+                            p2_d = float(row_data.get("Điểm Phần II", 0) or 0.0)
+                            p3_d = float(row_data.get("Điểm Phần III", 0) or 0.0)
 
-                            st.write(f"• **Phần I (Trắc nghiệm):** {p1_d:.2f} đ ({row_data.get('P1 Đúng', '')})")
-                            st.progress(min(p1_d / 3.0, 1.0) if p1_d else 0.0)
+                            # Tính toán max điểm an toàn theo từng phần
+                            de_cfg = bo_da_dung.get(row_data.get("Mã đề"), {})
+                            p1_len = len(de_cfg.get("phan1", {})) or int(details.get("p1_tong", 12))
+                            p2_len = len(de_cfg.get("phan2", {}))
+                            p3_len = len(de_cfg.get("phan3", {})) or int(details.get("p3_tong", 6))
 
-                            st.write(f"• **Phần II (Đúng/Sai):** {p2_d:.2f} đ")
-                            st.progress(min(p2_d / 4.0, 1.0) if p2_d else 0.0)
+                            max_p1 = max(float(p1_len) * float(de_cfg.get("diem_moi_cau_p1", 0.25)), 0.1)
+                            max_p2 = max(float(p2_len) * 1.0, 0.1)
+                            max_p3 = max(float(p3_len) * float(de_cfg.get("diem_moi_cau_p3", 0.50)), 0.1)
 
-                            st.write(f"• **Phần III (Trả lời ngắn):** {p3_d:.2f} đ ({row_data.get('P3 Đúng', '')})")
-                            st.progress(min(p3_d / 3.0, 1.0) if p3_d else 0.0)
+                            if p1_len > 0:
+                                st.write(f"• **Phần I (Trắc nghiệm):** {p1_d:.2f} đ ({row_data.get('P1 Đúng', '')}) / tối đa {max_p1:.2f}đ")
+                                st.progress(min(max(p1_d / max_p1, 0.0), 1.0))
 
-                            if details and "p1_chi_tiet" in details:
+                            if p2_len > 0:
+                                st.write(f"• **Phần II (Đúng/Sai):** {p2_d:.2f} đ / tối đa {max_p2:.2f}đ")
+                                st.progress(min(max(p2_d / max_p2, 0.0), 1.0))
+
+                            if p3_len > 0:
+                                st.write(f"• **Phần III (Trả lời ngắn):** {p3_d:.2f} đ ({row_data.get('P3 Đúng', '')}) / tối đa {max_p3:.2f}đ")
+                                st.progress(min(max(p3_d / max_p3, 0.0), 1.0))
+
+                            # Chi tiết Phần I
+                            if details and "p1_chi_tiet" in details and details["p1_chi_tiet"]:
                                 st.write("")
                                 st.markdown("🎯 **Chi tiết Phần I (Trắc nghiệm):**")
                                 chips_p1 = ""
                                 p1_answers = details.get("p1_chi_tiet", {})
-                                active_key_de = bo_da_dung.get(row_data.get("Mã đề"), {}).get("phan1", {})
+                                active_key_de = de_cfg.get("phan1", {})
                                 for q_n in sorted(p1_answers.keys(), key=lambda x: int(x)):
                                     hs_ans = p1_answers[q_n]
                                     corr_ans = active_key_de.get(str(q_n), "")
                                     if hs_ans == corr_ans:
                                         chips_p1 += f'<span class="chip chip-ok">Câu {q_n}: {hs_ans} ✓</span>'
+                                    elif len(hs_ans) > 1 and hs_ans != "-":
+                                        chips_p1 += f'<span class="chip chip-warn">Câu {q_n}: Tô đúp {hs_ans} (ĐA: {corr_ans})</span>'
+                                    elif hs_ans in ("-", ""):
+                                        chips_p1 += f'<span class="chip chip-wrong">Câu {q_n}: Bỏ trống (ĐA: {corr_ans})</span>'
                                     else:
                                         chips_p1 += f'<span class="chip chip-wrong">Câu {q_n}: {hs_ans} (ĐA: {corr_ans})</span>'
                                 st.markdown(chips_p1, unsafe_allow_html=True)
 
-                            if details and "p2_chi_tiet" in details:
+                            # Chi tiết Phần II
+                            if details and "p2_chi_tiet" in details and details["p2_chi_tiet"]:
                                 st.write("")
                                 st.markdown("⚖️ **Chi tiết Phần II (Đúng/Sai - Barem Bộ GD&ĐT):**")
                                 chips_p2 = ""
@@ -1384,7 +1742,8 @@ with tabs[2]:
                                         chips_p2 += f'<span class="chip chip-ok">Câu {q_n}: {item}</span>'
                                 st.markdown(chips_p2, unsafe_allow_html=True)
 
-                            if details and "p3_chi_tiet" in details:
+                            # Chi tiết Phần III
+                            if details and "p3_chi_tiet" in details and details["p3_chi_tiet"]:
                                 st.write("")
                                 st.markdown("🔢 **Chi tiết Phần III (Trả lời ngắn):**")
                                 chips_p3 = ""
@@ -1397,6 +1756,8 @@ with tabs[2]:
                                         da_v = item.get("da", "")
                                         if is_dung:
                                             chips_p3 += f'<span class="chip chip-ok">Câu {q_n}: {hs_v} ✓</span>'
+                                        elif hs_v in ("-", ""):
+                                            chips_p3 += f'<span class="chip chip-wrong">Câu {q_n}: Bỏ trống (ĐA: {da_v})</span>'
                                         else:
                                             chips_p3 += f'<span class="chip chip-wrong">Câu {q_n}: {hs_v} (ĐA: {da_v})</span>'
                                     else:
