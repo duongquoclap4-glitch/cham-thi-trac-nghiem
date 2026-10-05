@@ -2,6 +2,7 @@
 Giao diện Liquid Glass chuẩn (VisionOS / Frosted Glass) với tab bo tròn 14px, chuyển động nảy lò xo sinh động.
 """
 
+import hashlib
 import importlib
 import io
 import json
@@ -1356,16 +1357,43 @@ with tabs[2]:
         </div>
         """, unsafe_allow_html=True)
 
-        sub_tab_upload, sub_tab_camera = st.tabs([
-            "📁 Tải Lên Tệp Hàng Loạt (Batch Upload)",
-            "📸 Quét Trực Tiếp Bằng Camera (Live Scan)"
-        ])
+        # CHỌN PHƯƠNG THỨC NỘP BÀI THI (KHÔNG BAO GIỜ TỰ ĐỘNG BẬT CAMERA)
+        col_m1, col_m2 = st.columns(2)
+        cur_mode = st.session_state.get("scan_mode", "file")
+        with col_m1:
+            if st.button(
+                "📁 Tải Lên Tệp Bài Thi (Ảnh / Scan từ máy & điện thoại)",
+                use_container_width=True,
+                type="primary" if cur_mode == "file" else "secondary",
+                key="btn_mode_file"
+            ):
+                st.session_state["scan_mode"] = "file"
+                st.session_state["cam_active"] = False
+                st.rerun()
 
+        with col_m2:
+            if st.button(
+                "📸 Quét Trực Tiếp Bằng Máy Ảnh (Bật Camera trình duyệt)",
+                use_container_width=True,
+                type="primary" if cur_mode == "cam" else "secondary",
+                key="btn_mode_cam"
+            ):
+                st.session_state["scan_mode"] = "cam"
+                st.rerun()
+
+        scan_mode = st.session_state.get("scan_mode", "file")
         bo_da_dung = st.session_state.get("active_keys", {})
         roster_data = st.session_state.get("student_roster")
 
-        # ---- CHẾ ĐỘ 1: TẢI TỆP HÀNG LOẠT ----
-        with sub_tab_upload:
+        # ---- CHẾ ĐỘ 1: TẢI TỆP HÀNG LOẠT (MẶC ĐỊNH - KHÔNG HỀ BẬT CAMERA) ----
+        if scan_mode == "file":
+            st.markdown("""
+            <div style="font-size: 13.5px; color: #475569; margin: 8px 0 12px 0;">
+                📁 <b>Tải tệp ảnh bài thi:</b> Hỗ trợ ảnh JPG, PNG, WebP từ máy tính hoặc điện thoại.<br>
+                📱 <b>Dành cho điện thoại:</b> Khi bấm nút chọn tệp bên dưới, bạn có thể <b>mở trực tiếp ứng dụng Máy ảnh</b> của điện thoại để chụp ảnh bài thi cực kỳ sắc nét mà không lo bị trình duyệt hỏi quyền webcam!
+            </div>
+            """, unsafe_allow_html=True)
+
             uploaded_files = st.file_uploader(
                 "Kéo thả hoặc chọn các ảnh bài thi cần chấm (JPG, PNG, WebP):",
                 type=["jpg", "jpeg", "png", "webp"],
@@ -1402,63 +1430,95 @@ with tabs[2]:
                     st.success(f"🎉 Hoàn tất chấm {len(uploaded_files)} bài thi!")
                     st.rerun()
 
-        # ---- CHẾ ĐỘ 2: QUÉT TRỰC TIẾP BẰNG CAMERA ----
-        with sub_tab_camera:
-            st.markdown("""
-            <div style="font-size: 13.5px; color: #475569; margin-bottom: 10px;">
-                📸 <b>Hướng dẫn quét camera:</b> Cầm điện thoại hoặc đặt phiếu trước webcam sao cho tờ phiếu nằm phẳng, đủ ánh sáng, và nhìn rõ 4 ô vuông đen định vị ở 4 góc phiếu. Sau đó bấm <b>Chụp ảnh</b>:
-            </div>
-            """, unsafe_allow_html=True)
+        # ---- CHẾ ĐỘ 2: QUÉT TRỰC TIẾP BẰNG CAMERA (CHỈ BẬT KHI NGƯỜI DÙNG BẤM CHO PHÉP) ----
+        else:
+            if not st.session_state.get("cam_active", False):
+                st.markdown("""
+                <div style="background: #f8fafc; border: 1.5px dashed #94a3b8; border-radius: 16px; padding: 28px 20px; text-align: center; margin: 14px 0;">
+                    <div style="font-size: 38px; margin-bottom: 8px;">🔒 📷</div>
+                    <div style="font-size: 17px; font-weight: 800; color: #0f172a;">Máy Ảnh Hiện Đang Được Tắt Hoàn Toàn</div>
+                    <div style="font-size: 13.5px; color: #64748b; margin-top: 6px; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                        Để đảm bảo quyền riêng tư và bảo mật tuyệt đối cho thiết bị của bạn, camera chỉ được kích hoạt khi bạn chủ động bấm nút bật bên dưới.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
-            cam_shot = st.camera_input("📸 Khung chụp Camera trực tiếp:", key="camera_shot_input")
+                if st.button("📷 BẬT CAMERA ĐỂ BẮT ĐẦU CHỤP", type="primary", use_container_width=True, key="btn_turn_on_cam"):
+                    st.session_state["cam_active"] = True
+                    st.rerun()
+            else:
+                col_c_head, col_c_btn = st.columns([2.6, 1])
+                with col_c_head:
+                    st.markdown("""
+                    <div style="font-size: 13.5px; color: #475569; margin: 4px 0 10px 0;">
+                        🟢 <b>Máy ảnh đang bật:</b> Đưa phiếu thi vào trước ống kính (thấy rõ 4 ô vuông đen ở 4 góc). Bấm <b>Chụp ảnh</b>, hệ thống sẽ <b>tự động tải bài lên và chấm điểm ngay lập tức</b>!
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_c_btn:
+                    if st.button("🔴 TẮT MÁY ẢNH", type="secondary", use_container_width=True, key="btn_turn_off_cam"):
+                        st.session_state["cam_active"] = False
+                        st.rerun()
 
-            if cam_shot is not None:
-                try:
-                    img_cam = doc_anh(cam_shot.getvalue())
-                    c_row, c_anh = xu_ly_file_bggdt(
-                        ten_file=f"Cam_Scan_{len(st.session_state.get('results_df', [])) + 1}.jpg",
-                        img=img_cam,
-                        bo_dap_an=bo_da_dung,
-                        cau_hinh_diem=None,
-                        danh_sach_hoc_sinh=roster_data
-                    )
+                cam_shot = st.camera_input("📸 Khung chụp Camera:", key="camera_shot_input")
 
-                    if c_anh is not None:
-                        st.success(f"🎉 Nhận diện thành công! SBD: **{c_row['SBD']}** | Mã đề: **{c_row['Mã đề']}** | Tổng điểm: **{c_row['Tổng điểm']}đ**")
+                if cam_shot is not None:
+                    shot_bytes = cam_shot.getvalue()
+                    shot_hash = hashlib.md5(shot_bytes).hexdigest()
 
-                        cam_c1, cam_c2 = st.columns([1.1, 1.2])
-                        with cam_c1:
-                            st.markdown(f"""
-                            <div style="background: white; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
-                                <div style="font-size: 18px; font-weight: 800; color: #0f172a;">Thí sinh: {c_row['Họ và tên']}</div>
-                                <div style="font-size: 13px; color: #64748b;">Lớp: <b>{c_row['Lớp']}</b> | SBD: <b>{c_row['SBD']}</b> | Mã đề: <b>{c_row['Mã đề']}</b></div>
-                                <div style="font-size: 28px; font-weight: 800; color: #16a34a; margin-top: 6px;">{c_row['Tổng điểm']} điểm</div>
-                                <div style="font-size: 13px; margin-top: 4px;">• Phần I: <b>{c_row['Điểm Phần I']}đ</b> ({c_row['P1 Đúng']})</div>
-                                <div style="font-size: 13px;">• Phần II: <b>{c_row['Điểm Phần II']}đ</b></div>
-                                <div style="font-size: 13px;">• Phần III: <b>{c_row['Điểm Phần III']}đ</b> ({c_row['P3 Đúng']})</div>
-                                <div style="margin-top: 8px;"><span class="badge-pill {'badge-success' if '✅' in c_row['Cảnh báo'] else 'badge-warning'}">{c_row['Cảnh báo']}</span></div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                    # TỰ ĐỘNG TẢI LÊN & CHẤM NGAY LẬP TỨC
+                    if st.session_state.get("last_cam_shot_hash") != shot_hash:
+                        try:
+                            img_cam = doc_anh(shot_bytes)
+                            c_row, c_anh = xu_ly_file_bggdt(
+                                ten_file=f"Cam_Scan_{len(st.session_state.get('results_df', [])) + 1}.jpg",
+                                img=img_cam,
+                                bo_dap_an=bo_da_dung,
+                                cau_hinh_diem=None,
+                                danh_sach_hoc_sinh=roster_data
+                            )
 
-                            if st.button("➕ LƯU BÀI NÀY VÀO BẢNG ĐIỂM TỔNG HỢP", type="primary", key="btn_save_cam_result"):
+                            if c_anh is not None:
+                                # Tự động tích lũy vào danh sách kết quả chung
                                 if "results_df" not in st.session_state:
                                     st.session_state["results_df"] = pd.DataFrame([c_row])
                                 else:
-                                    existing_df = st.session_state["results_df"]
-                                    st.session_state["results_df"] = pd.concat([existing_df, pd.DataFrame([c_row])], ignore_index=True)
+                                    st.session_state["results_df"] = pd.concat([st.session_state["results_df"], pd.DataFrame([c_row])], ignore_index=True)
 
                                 if "graded_images" not in st.session_state:
                                     st.session_state["graded_images"] = []
                                 st.session_state["graded_images"].append((c_row["Tên file"], c_anh, c_row))
-                                st.toast(f"✅ Đã thêm bài của SBD {c_row['SBD']} vào bảng điểm tổng hợp!", icon="🎉")
-                                st.rerun()
 
-                        with cam_c2:
-                            st.image(c_anh, caption=f"Phiếu chấm trực quan từ Camera (SBD: {c_row['SBD']})", use_container_width=True)
-                    else:
-                        st.error(f"⚠️ {c_row.get('Cảnh báo', c_row.get('Ghi chú'))}. Vui lòng căn chỉnh lại góc máy ảnh và chụp lại.")
-                except Exception as ex_cam:
-                    st.error(f"⚠️ Lỗi quét camera: {ex_cam}. Vui lòng chụp rõ 4 góc định vị.")
+                                st.session_state["last_cam_shot_hash"] = shot_hash
+                                st.session_state["last_cam_graded"] = (c_row, c_anh)
+                                st.toast(f"✅ Đã tự động lưu bài thi của SBD {c_row['SBD']} ({c_row['Tổng điểm']}đ)!", icon="🎉")
+                            else:
+                                st.session_state["last_cam_graded"] = None
+                                st.error(f"⚠️ {c_row.get('Cảnh báo', c_row.get('Ghi chú'))}. Vui lòng căn chỉnh lại góc máy ảnh và chụp lại.")
+                        except Exception as ex_cam:
+                            st.session_state["last_cam_graded"] = None
+                            st.error(f"⚠️ Lỗi quét camera: {ex_cam}. Vui lòng chụp rõ 4 góc định vị.")
+
+                # Hiển thị kết quả bài vừa chụp ngay tại chỗ
+                if st.session_state.get("last_cam_graded"):
+                    last_row, last_img = st.session_state["last_cam_graded"]
+                    st.success(f"🎉 ĐÃ TỰ ĐỘNG CHẤM & LƯU BÀI: Thí sinh **{last_row['Họ và tên']}** (SBD: **{last_row['SBD']}**, Lớp: **{last_row['Lớp']}**) — Điểm: **{last_row['Tổng điểm']}đ**")
+
+                    c_preview1, c_preview2 = st.columns([1, 1.2])
+                    with c_preview1:
+                        st.markdown(f"""
+                        <div style="background: white; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+                            <div style="font-size: 18px; font-weight: 800; color: #0f172a;">{last_row['Họ và tên']}</div>
+                            <div style="font-size: 13px; color: #64748b;">SBD: <b>{last_row['SBD']}</b> | Lớp: <b>{last_row['Lớp']}</b> | Mã đề: <b>{last_row['Mã đề']}</b></div>
+                            <div style="font-size: 28px; font-weight: 800; color: #16a34a; margin-top: 6px;">{last_row['Tổng điểm']} điểm</div>
+                            <div style="font-size: 13px; margin-top: 4px;">• Phần I: <b>{last_row['Điểm Phần I']}đ</b> ({last_row['P1 Đúng']})</div>
+                            <div style="font-size: 13px;">• Phần II: <b>{last_row['Điểm Phần II']}đ</b></div>
+                            <div style="font-size: 13px;">• Phần III: <b>{last_row['Điểm Phần III']}đ</b> ({last_row['P3 Đúng']})</div>
+                            <div style="margin-top: 8px;"><span class="badge-pill {'badge-success' if '✅' in last_row['Cảnh báo'] else 'badge-warning'}">{last_row['Cảnh báo']}</span></div>
+                            <div style="font-size: 12.5px; color: #16a34a; font-weight: 700; margin-top: 10px;">✓ Đã tự động cập nhật vào Bảng Điểm Tổng Hợp bên dưới!</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with c_preview2:
+                        st.image(last_img, caption=f"Phiếu chấm trực quan (SBD: {last_row['SBD']})", use_container_width=True)
 
     # 3. BẢNG TỔNG HỢP KẾT QUẢ, THỐNG KÊ KPI & CẢNH BÁO BẤT THƯỜNG
     if "results_df" in st.session_state and not st.session_state["results_df"].empty:
