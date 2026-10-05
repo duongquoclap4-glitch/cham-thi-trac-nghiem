@@ -782,22 +782,6 @@ st.markdown("""
 # ==========================================
 require_auth()
 
-# Tự động lưu token định danh vào bộ nhớ LocalStorage của thiết bị
-_curr_tok = st.query_params.get("token")
-if _curr_tok:
-    components.html(f"""
-    <script>
-    try {{
-        if (window.parent && window.parent.localStorage) {{
-            window.parent.localStorage.setItem('omr_device_token', '{_curr_tok}');
-        }}
-    }} catch(e) {{}}
-    try {{
-        localStorage.setItem('omr_device_token', '{_curr_tok}');
-    }} catch(e) {{}}
-    </script>
-    """, height=0, width=0)
-
 # ==========================================
 # HERO BANNER & THÔNG TIN TÀI KHOẢN
 # ==========================================
