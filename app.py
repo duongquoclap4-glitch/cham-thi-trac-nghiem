@@ -19,7 +19,7 @@ import auth
 importlib.reload(auth)
 from generate_sample_bggdt import tao_bai_thi_mau
 from omr_bggdt import doc_anh, tao_dap_an_tu_anh_phieu, xu_ly_file_bggdt
-from auth import require_auth
+from auth import require_auth, logout
 
 st.set_page_config(
     page_title="Hệ Thống Chấm Thi Trắc Nghiệm Bộ GD&ĐT 2025",
@@ -657,10 +657,7 @@ with col_user:
         <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">Vai trò: <b>{role_label}</b></div>
         """, unsafe_allow_html=True)
         if st.button("🚪 Đăng Xuất", type="secondary", use_container_width=True, key="btn_logout"):
-            st.session_state["logged_in"] = False
-            st.session_state["username"] = ""
-            st.session_state["user_info"] = {}
-            st.rerun()
+            logout()
 
 st.write("")
 
