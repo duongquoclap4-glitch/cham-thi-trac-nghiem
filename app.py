@@ -838,6 +838,22 @@ def save_user_keys(username: str, keys_dict: dict):
         json.dump(keys_dict, f, ensure_ascii=False, indent=2)
 
 
+def reset_made_widgets(made: str):
+    """Xóa trạng thái widget đã ghi nhớ của 1 mã đề để giao diện nạp lại số câu/đáp án mới.
+
+    Streamlit giữ giá trị widget theo `key`, nên khi đổi định dạng môn thi
+    (số câu P.I/P.II/P.III, điểm mỗi câu...) phải xóa các key cũ thì mới cập nhật.
+    """
+    prefixes = (
+        f"num_p1_{made}", f"num_p2_{made}", f"num_p3_{made}",
+        f"diem_p1_{made}", f"diem_p3_{made}", f"quick_str_{made}",
+        f"p1_sel_{made}_", f"p2_r_{made}_", f"p3_txt_{made}_",
+    )
+    for k in list(st.session_state.keys()):
+        if isinstance(k, str) and k.startswith(prefixes):
+            del st.session_state[k]
+
+
 # Phân tách dữ liệu đáp án riêng biệt cho từng tài khoản người dùng
 current_user = st.session_state.get("username", "default")
 user_key_file = get_user_keys_path(current_user)
@@ -1023,6 +1039,7 @@ with tabs[1]:
                 keys[chon_made] = data_de
                 st.session_state["active_keys"] = keys
                 save_user_keys(current_user, keys)
+                reset_made_widgets(chon_made)
                 st.rerun()
 
         with col_m2:
@@ -1036,6 +1053,7 @@ with tabs[1]:
                 keys[chon_made] = data_de
                 st.session_state["active_keys"] = keys
                 save_user_keys(current_user, keys)
+                reset_made_widgets(chon_made)
                 st.rerun()
 
         with col_m3:
@@ -1049,6 +1067,7 @@ with tabs[1]:
                 keys[chon_made] = data_de
                 st.session_state["active_keys"] = keys
                 save_user_keys(current_user, keys)
+                reset_made_widgets(chon_made)
                 st.rerun()
 
         with col_m4:
@@ -1062,6 +1081,7 @@ with tabs[1]:
                 keys[chon_made] = data_de
                 st.session_state["active_keys"] = keys
                 save_user_keys(current_user, keys)
+                reset_made_widgets(chon_made)
                 st.rerun()
 
         with col_m5:
@@ -1070,6 +1090,7 @@ with tabs[1]:
                 keys[chon_made] = data_de
                 st.session_state["active_keys"] = keys
                 save_user_keys(current_user, keys)
+                reset_made_widgets(chon_made)
                 st.rerun()
 
         # Hiển thị tóm tắt cấu hình đang chọn
@@ -1255,6 +1276,7 @@ with tabs[1]:
                         keys[chon_made] = data_gv
                         st.session_state["active_keys"] = keys
                         save_user_keys(current_user, keys)
+                        reset_made_widgets(chon_made)
                         st.success("Đã cập nhật đáp án từ phiếu ảnh vào kho riêng của bạn!")
                         st.rerun()
                 except Exception as e:
