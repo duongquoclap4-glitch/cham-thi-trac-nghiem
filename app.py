@@ -37,14 +37,24 @@ st.markdown("""
     /* Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    html, body, [class*="css"] {
+    /* CỐ ĐỊNH CHỦ ĐỀ SÁNG (LIGHT MODE ONLY) - CHỐNG HOÀN TOÀN MỌI ẢNH HƯỞNG TỪ NỀN TỐI */
+    :root, html, body, [class*="css"], .stApp {
+        color-scheme: light !important;
         font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Ẩn hoàn toàn thanh công cụ và nút đổi giao diện của Streamlit */
+    #MainMenu, footer, header[data-testid="stHeader"], [data-testid="stToolbar"] {
+        visibility: hidden !important;
+        display: none !important;
     }
 
     /* 1. NỀN SÁNG TRẮNG TINH TẾ & HIỆN ĐẠI */
     .stApp, [data-testid="stAppViewContainer"], .main {
         background: #f8fafc !important;
         background-color: #f8fafc !important;
+        color: #0f172a !important;
+        color-scheme: light !important;
     }
 
     .block-container {
@@ -735,6 +745,24 @@ st.markdown("""
         color: #0f172a !important;
     }
 
+    /* 9. Nút bấm phụ (Secondary buttons, Download buttons) luôn nền trắng, chữ đậm */
+    button[kind="secondary"],
+    div[data-testid="stButton"] button:not([kind="primary"]),
+    div[data-testid="stDownloadButton"] button:not([kind="primary"]) {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+        border: 1.5px solid #cbd5e1 !important;
+    }
+    button[kind="secondary"]:hover,
+    div[data-testid="stButton"] button:not([kind="primary"]):hover,
+    div[data-testid="stDownloadButton"] button:not([kind="primary"]):hover {
+        background-color: #f1f5f9 !important;
+        border-color: #0284c7 !important;
+        color: #0284c7 !important;
+        -webkit-text-fill-color: #0284c7 !important;
+    }
+
     /* Ngoại lệ cho Hero Banner và nút Primary (có màu nền xanh/tối) */
     .hero-banner, .hero-banner *,
     button[kind="primary"], button[kind="primary"] *,
@@ -1058,18 +1086,18 @@ with tabs[1]:
                 with col_target:
                     with st.container(border=True):
                         st.markdown(f"**Câu {q_i}:**")
-                        sub_dict = curr_p2.get(str(q_i), {"a": "D", "b": "S", "c": "D", "d": "S"})
+                        sub_dict = curr_p2.get(str(q_i), {"a": "Đ", "b": "S", "c": "Đ", "d": "S"})
                         updated_sub = {}
                         for s in ["a", "b", "c", "d"]:
-                            cur_s = sub_dict.get(s, "D")
+                            cur_s = str(sub_dict.get(s, "Đ")).upper()
                             c_choice = st.radio(
                                 f"Ý {s}):",
-                                options=["Đúng (D)", "Sai (S)"],
-                                index=0 if cur_s == "D" else 1,
+                                options=["Đúng (Đ)", "Sai (S)"],
+                                index=0 if cur_s in ("Đ", "D") else 1,
                                 key=f"p2_r_{chon_made}_{q_i}_{s}",
                                 horizontal=True
                             )
-                            updated_sub[s] = "D" if "Đúng" in c_choice else "S"
+                            updated_sub[s] = "Đ" if "Đúng" in c_choice else "S"
                         curr_p2[str(q_i)] = updated_sub
 
             data_de["phan2"] = {str(i): curr_p2[str(i)] for i in range(1, so_cau_p2 + 1)}
@@ -1365,7 +1393,8 @@ with tabs[2]:
                                         subs_html = ""
                                         for sub, sub_st in item.get("subs", {}).items():
                                             s_ok = sub_st.get("dung", False)
-                                            subs_html += f'<span class="sub-item {"sub-item-ok" if s_ok else "sub-item-fail"}">{sub}:{sub_st.get("hs")}{"✓" if s_ok else "✗"}</span>'
+                                            hs_display = str(sub_st.get("hs", "-")).replace("D", "Đ")
+                                            subs_html += f'<span class="sub-item {"sub-item-ok" if s_ok else "sub-item-fail"}">{sub}:{hs_display}{"✓" if s_ok else "✗"}</span>'
                                         chips_p2 += f'<span class="chip {c_class}">Câu {q_n}: {so_y}/4 ({diem_c:.2f}đ) {subs_html}</span>'
                                     else:
                                         chips_p2 += f'<span class="chip chip-ok">Câu {q_n}: {item}</span>'

@@ -275,8 +275,11 @@ def tinh_diem_phan2_cau(dap_an_cau: Dict[str, str], chon_cau: Dict[str, str]) ->
     """
     so_y_dung = 0
     for sub in ["a", "b", "c", "d"]:
-        if sub in dap_an_cau and chon_cau.get(sub) == dap_an_cau[sub]:
-            so_y_dung += 1
+        if sub in dap_an_cau:
+            da_val = str(dap_an_cau[sub]).replace("Đ", "D")
+            hs_val = str(chon_cau.get(sub, "")).replace("Đ", "D")
+            if hs_val == da_val and hs_val in ("D", "S"):
+                so_y_dung += 1
 
     barem = {0: 0.0, 1: 0.10, 2: 0.25, 3: 0.50, 4: 1.00}
     return so_y_dung, barem.get(so_y_dung, 0.0)
@@ -363,9 +366,9 @@ def cham_bai_bggdt(
             "text": f"{so_y}/4 ({diem_cau:.2f}đ)",
             "subs": {
                 sub: {
-                    "hs": hs_subs.get(sub, "-"),
-                    "da": key_subs.get(sub, "-"),
-                    "dung": (hs_subs.get(sub, "-") == key_subs.get(sub, "-"))
+                    "hs": str(hs_subs.get(sub, "-")).replace("D", "Đ"),
+                    "da": str(key_subs.get(sub, "-")).replace("D", "Đ"),
+                    "dung": (str(hs_subs.get(sub, "-")).replace("Đ", "D") == str(key_subs.get(sub, "-")).replace("Đ", "D"))
                 }
                 for sub in ["a", "b", "c", "d"] if sub in key_subs
             }
@@ -373,17 +376,19 @@ def cham_bai_bggdt(
 
         for sub in ["a", "b", "c", "d"]:
             if sub in key_subs:
-                correct_choice = key_subs[sub]
-                hs_choice = hs_subs.get(sub, "-")
+                correct_choice = str(key_subs[sub]).replace("Đ", "D")
+                hs_choice = str(hs_subs.get(sub, "-")).replace("Đ", "D")
 
-                c_correct = TEMPLATE["phan2"][str(q_int)][sub][correct_choice]
-                cv2.circle(anh_out, (int(round(c_correct[0])), int(round(c_correct[1]))), int(round(c_correct[2])) + 3, (0, 180, 0), 2)
+                c_correct = TEMPLATE["phan2"][str(q_int)][sub].get(correct_choice)
+                if c_correct:
+                    cv2.circle(anh_out, (int(round(c_correct[0])), int(round(c_correct[1]))), int(round(c_correct[2])) + 3, (0, 180, 0), 2)
 
                 if hs_choice != correct_choice and hs_choice in ("D", "S", "DS"):
                     for ch in hs_choice:
                         if ch in ("D", "S"):
-                            c_wrong = TEMPLATE["phan2"][str(q_int)][sub][ch]
-                            cv2.circle(anh_out, (int(round(c_wrong[0])), int(round(c_wrong[1]))), int(round(c_wrong[2])) + 3, (0, 0, 255), 2)
+                            c_wrong = TEMPLATE["phan2"][str(q_int)][sub].get(ch)
+                            if c_wrong:
+                                cv2.circle(anh_out, (int(round(c_wrong[0])), int(round(c_wrong[1]))), int(round(c_wrong[2])) + 3, (0, 0, 255), 2)
 
     diem_p2 = round(diem_p2, 2)
 
