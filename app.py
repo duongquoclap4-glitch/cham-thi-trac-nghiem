@@ -666,11 +666,39 @@ PDF_PATH = os.path.join(os.path.dirname(__file__), "phieu_chuan_bggdt_2025.pdf")
 IMG_TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "phieu_chuan_bggdt_150dpi.png")
 SAMPLE_KEY_PATH = os.path.join(os.path.dirname(__file__), "dap_an_chuan_bggdt.json")
 
-# Initialize session state for answer keys
-if "active_keys" not in st.session_state:
-    if os.path.exists(SAMPLE_KEY_PATH):
+
+def get_user_keys_path(username: str) -> str:
+    """Đường dẫn file đáp án riêng cho từng tài khoản."""
+    clean_u = re.sub(r'[^a-zA-Z0-9_-]', '_', str(username).strip().lower())
+    if not clean_u:
+        clean_u = "default_user"
+    user_dir = os.path.join(os.path.dirname(__file__), "user_data", clean_u)
+    os.makedirs(user_dir, exist_ok=True)
+    return os.path.join(user_dir, "dap_an_chuan.json")
+
+
+def save_user_keys(username: str, keys_dict: dict):
+    """Lưu đáp án vào kho riêng của tài khoản."""
+    path = get_user_keys_path(username)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(keys_dict, f, ensure_ascii=False, indent=2)
+
+
+# Phân tách dữ liệu đáp án riêng biệt cho từng tài khoản người dùng
+current_user = st.session_state.get("username", "default")
+user_key_file = get_user_keys_path(current_user)
+
+if "active_keys_user" not in st.session_state or st.session_state.get("active_keys_user") != current_user:
+    if os.path.exists(user_key_file):
+        try:
+            with open(user_key_file, "r", encoding="utf-8") as f:
+                st.session_state["active_keys"] = json.load(f)
+        except Exception:
+            st.session_state["active_keys"] = {}
+    elif os.path.exists(SAMPLE_KEY_PATH):
         with open(SAMPLE_KEY_PATH, "r", encoding="utf-8") as f:
             st.session_state["active_keys"] = json.load(f)
+        save_user_keys(current_user, st.session_state["active_keys"])
     else:
         st.session_state["active_keys"] = {
             "101": {
@@ -679,6 +707,8 @@ if "active_keys" not in st.session_state:
                 "phan3": {"1": "12", "2": "-3.5", "3": "0.25", "4": "2025", "5": "-12", "6": "100"}
             }
         }
+        save_user_keys(current_user, st.session_state["active_keys"])
+    st.session_state["active_keys_user"] = current_user
 
 tabs = st.tabs([
     "🖨️ Tải Phiếu Thi",
@@ -749,12 +779,12 @@ with tabs[1]:
 
     # SECTION 1: QUẢN LÝ & CHUYỂN ĐỔI MÃ ĐỀ
     with st.container(border=True):
-        st.markdown("""
+        st.markdown(f"""
         <div class="glass-header">
             <div class="glass-header-icon">🏷️</div>
             <div>
-                <div style="font-size: 19px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">1. Quản Lý & Chuyển Đổi Mã Đề</div>
-                <div style="font-size: 13px; color: #64748b; font-weight: 500;">Bấm vào nút mã đề để chuyển đổi hoặc nhập mã đề mới tự do (VD: 332, 445)</div>
+                <div style="font-size: 19px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">1. Quản Lý & Chuyển Đổi Mã Đề <span style="font-size: 13px; font-weight: 600; color: #0284c7; background: rgba(2,132,199,0.1); padding: 3px 10px; border-radius: 12px; margin-left: 8px;">🔒 Kho riêng của {fullname}</span></div>
+                <div style="font-size: 13px; color: #64748b; font-weight: 500;">Mã đề và đáp án tại đây hoàn toàn độc lập, chỉ mình bạn nhìn thấy và sử dụng để chấm bài</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -776,8 +806,7 @@ with tabs[1]:
                 if st.button(f"🗑️ Xóa mã đề {chon_made}", type="secondary", key="btn_del_made"):
                     del keys[chon_made]
                     st.session_state["active_keys"] = keys
-                    with open(SAMPLE_KEY_PATH, "w", encoding="utf-8") as f:
-                        json.dump(keys, f, ensure_ascii=False, indent=2)
+                    save_user_keys(current_user, keys)
                     st.success(f"Đã xóa mã đề {chon_made}!")
                     st.rerun()
 
@@ -797,9 +826,8 @@ with tabs[1]:
                         src_data = keys.get(chon_made, {})
                         keys[s_ma] = json.loads(json.dumps(src_data))
                         st.session_state["active_keys"] = keys
-                        with open(SAMPLE_KEY_PATH, "w", encoding="utf-8") as f:
-                            json.dump(keys, f, ensure_ascii=False, indent=2)
-                        st.success(f"✅ Đã thêm mã đề **{s_ma}** thành công!")
+                        save_user_keys(current_user, keys)
+                        st.success(f"✅ Đã thêm mã đề **{s_ma}** thành công vào kho của bạn!")
                         st.rerun()
 
     # SECTION 2: SOẠN ĐÁP ÁN CHI TIẾT
@@ -946,9 +974,8 @@ with tabs[1]:
                     if st.button(f"Áp dụng vào mã đề {chon_made}"):
                         keys[chon_made] = data_gv
                         st.session_state["active_keys"] = keys
-                        with open(SAMPLE_KEY_PATH, "w", encoding="utf-8") as f:
-                            json.dump(keys, f, ensure_ascii=False, indent=2)
-                        st.success("Đã cập nhật đáp án từ phiếu ảnh thành công!")
+                        save_user_keys(current_user, keys)
+                        st.success("Đã cập nhật đáp án từ phiếu ảnh vào kho riêng của bạn!")
                         st.rerun()
                 except Exception as e:
                     st.error(f"Lỗi: {e}")
@@ -960,9 +987,8 @@ with tabs[1]:
             if st.button(f"💾 LƯU ĐÁP ÁN MÃ ĐỀ {chon_made}", type="primary"):
                 keys[chon_made] = data_de
                 st.session_state["active_keys"] = keys
-                with open(SAMPLE_KEY_PATH, "w", encoding="utf-8") as f:
-                    json.dump(keys, f, ensure_ascii=False, indent=2)
-                st.success(f"🎉 Đã lưu đáp án Mã đề **{chon_made}** vào hệ thống!")
+                save_user_keys(current_user, keys)
+                st.success(f"🎉 Đã lưu đáp án Mã đề **{chon_made}** vào kho riêng của bạn ({fullname})!")
         with save_c2:
             st.info(f"📌 Đang cấu hình: **{len(data_de['phan1'])} câu Phần I** | **{len(data_de['phan2'])} câu Phần II** | **{len(data_de['phan3'])} câu Phần III** cho mã đề **{chon_made}**.")
 
